@@ -1,0 +1,28 @@
+﻿<Application x:Class="MicMuter.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:MicMuter"
+             Startup="App_Startup"
+             ShutdownMode="OnExplicitShutdown">
+
+    <Application.Resources>
+        <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                            xmlns:tb="http://www.hardcodet.net/taskbar">
+
+            <tb:TaskbarIcon
+                x:Key="NotifyIcon"
+                IconSource="Icons/icon.ico"
+                Visibility="Visible"
+                ToolTipText="MicMuter"
+                MenuActivation="LeftOrRightClick">
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Options" Click="tbMenuItem1_Click"/>
+                        <MenuItem Header="Exit" Click="tbMenuItem2_Click"/>
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
