@@ -1,5 +1,5 @@
 # MicMuter
-Mute your microphone from anywhere with a keyboard shortcut
+Mute your microphone from anywhere with a keyboard shortcut<br/>
 ![alt text](https://github.com/cyberrex5/MicMuter/blob/main/screenshots/scr1.png?raw=true)
 
 # Installation
