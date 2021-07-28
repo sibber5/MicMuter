@@ -1,6 +1,6 @@
 # MicMuter
 Mute your microphone from anywhere with a keyboard shortcut
-![alt text](https://github.com/cyberrex5/MicMuter/blob/master/screenshots/scr1.png)
+![alt text](https://github.com/cyberrex5/MicMuter/blob/master/screenshots/scr1.png?raw=true)
 
 # Installation
 Download the [zip file](https://github.com/cyberrex5/MicMuter/releases/tag/v1.0.0) and extract it wherever you want.
