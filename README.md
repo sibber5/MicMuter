@@ -1,0 +1,13 @@
+# MicMuter
+Mute your microphone from anywhere with a keyboard shortcut
+![alt text](https://github.com/cyberrex5/MicMuter/blob/master/Screenshots/scr1.png)
+
+# Installation
+Download the [zip file](https://github.com/cyberrex5/MicMuter/releases/tag/v1.0.0) and extract it wherever you want.
+If you have any issues try installing [the latest version of the .NET Framework](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net48-web-installer) or updating windows
+
+# Libraries used
+[NAudio](https://github.com/naudio/NAudio)  
+[NHotkey](https://github.com/thomaslevesque/NHotkey)  
+[NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)
+[TaskScheduler](https://github.com/dahall/taskscheduler)
