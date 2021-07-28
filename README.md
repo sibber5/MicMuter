@@ -1,5 +1,5 @@
 # MicMuter
-Mute your microphone from anywhere with a keyboard shortcut<br/><br/>
+MicMuter is a WPF app (windows only) that lets you mute your microphone from anywhere with a keyboard shortcut<br/><br/>
 ![alt text](https://github.com/cyberrex5/MicMuter/blob/main/screenshots/scr1.png?raw=true)
 
 # Installation
