@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Input;
 using System.Windows.Interop;
 
-namespace WindowsHotkeys
+namespace WindowsHotkeys // BY: https://stackoverflow.com/a/9330358
 {
     public class HotKey : IDisposable
     {
