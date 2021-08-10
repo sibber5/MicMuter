@@ -11,12 +11,6 @@ namespace MicMuter
     /// </summary>
     public partial class HotkeyRecorder : Window
     {
-        private static Window _grayOut;
-        public static void SetGrayOutWindow(Window grayOut)
-        {
-            _grayOut = grayOut;
-        }
-
         private int[] keys = new int[2];
         private List<string> keyNames = new List<string>();
         private bool clearHotkey = false;
@@ -40,10 +34,14 @@ namespace MicMuter
             switch (e.Key)
             {
                 case Key.Escape:
+                    Owner.IsHitTestVisible = true;
+                    Owner.ResizeMode = ResizeMode.CanResize;
                     this.Close();
                     break;
                 case Key.Return:
                     if (hotkeyHasBeenRecorded) ((MainWindow)Application.Current.MainWindow).ApplyHotkey(String.Join("+", keyNames), keys);
+                    Owner.IsHitTestVisible = true;
+                    Owner.ResizeMode = ResizeMode.CanResize;
                     this.Close();
                     break;
                 default:
@@ -121,17 +119,10 @@ namespace MicMuter
 
         private bool IsModifierKey(Key key)
         {
-            return ((int)key >= 116 && (int)key <= 121);
+            return (int)key >= 116 && (int)key <= 121;
         }
 
-        private void HotkeyRecorder_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            ((MainWindow)Application.Current.MainWindow).Owner = null;
-            _grayOut.Close();
-            Application.Current.MainWindow.IsHitTestVisible = true;
-        }
-
-        public static IEnumerable<Key> KeysDown()
+        private static IEnumerable<Key> KeysDown()
         {
             foreach (Key key in Enum.GetValues(typeof(Key)))
             {

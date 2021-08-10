@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
-using System.Security.Principal;
 using System.Diagnostics;
 using Hardcodet.Wpf.TaskbarNotification;
 using NAudio.CoreAudioApi;
 using WindowsHotkeys;
-using Microsoft.Win32.TaskScheduler;
+using System.Reflection;
 
 namespace MicMuter
 {
@@ -17,31 +16,25 @@ namespace MicMuter
         public static readonly string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\MicMuter\";
         public static readonly string SaveFileName = @"UserSettings.xml";
 
-        public static bool HasAdminPrivileges = false;
-
         public static MMDeviceCollection InputDevices = new MMDeviceEnumerator().EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
         public static MMDevice SelectedInputDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
 
         public static Settings Settings { get; private set; } = new Settings();
+        private static bool? RequiredAdmin = null;
 
         private static List<HotKey> hotkey = new List<HotKey>();
 
         private static TaskbarIcon tb;
-        private static Task startupTask = null;
 
         void App_Startup(object sender, StartupEventArgs e)
         {
-            HasAdminPrivileges = (new WindowsPrincipal(WindowsIdentity.GetCurrent())).IsInRole(WindowsBuiltInRole.Administrator);
             tb = (TaskbarIcon)FindResource("NotifyIcon");
 
             LoadSettings();
+            RequiredAdmin = Settings.RequireAdmin;
 
             // in case the setting was changed from the settings file
-            if (HasAdminPrivileges && App.Settings.StartWithWindows && App.Settings.RequireAdmin)
-            {
-                SetStartupTask(true);
-                DisposeStartupTask();
-            }
+            if (!App.Settings.RequireAdmin) SetStartupKey(App.Settings.StartWithWindows);
 
             if (!App.Settings.StartMinimized)
             {
@@ -68,12 +61,12 @@ namespace MicMuter
             Application.Current.Shutdown();
         }
 
-        private void tbMenuItem1_Click(object sender, RoutedEventArgs e)
+        private void tbSettings_Click(object sender, RoutedEventArgs e)
         {
             MainWindow mainWindow = new MainWindow();
             mainWindow.Show();
         }
-        private void tbMenuItem2_Click(object sender, RoutedEventArgs e)
+        private void tbExit_Click(object sender, RoutedEventArgs e)
         {
             Close();
         }
@@ -137,59 +130,23 @@ namespace MicMuter
 
         private static void ToggleMicMute()
         {
-            SelectedInputDevice.AudioEndpointVolume.Mute = !(SelectedInputDevice.AudioEndpointVolume.Mute);
+            SelectedInputDevice.AudioEndpointVolume.Mute = !SelectedInputDevice.AudioEndpointVolume.Mute;
         }
 
-        public static void SetStartupTask(bool enabled) // use a windows task so the UAC prompt doesn't pop up every time the user logs in
+        public static void SetStartupTask(bool enable) // use a windows task so the UAC prompt doesn't pop up every time the user logs in
         {
-            if (startupTask == null)
+            MessageBox.Show("Administrator privilages required to set the startup task (enable/disable autorun on log in)", "UAC", MessageBoxButton.OK, MessageBoxImage.Information);
+            string pathToExe = Assembly.GetExecutingAssembly().Location;
+            ProcessStartInfo taskCreator = new ProcessStartInfo(System.IO.Path.GetDirectoryName(pathToExe) + "\\StartupTaskCreator\\StartupTaskCreator.exe",
+                $"{(enable ? "1" : "0")} {App.Name} {pathToExe}")
             {
-                startupTask = TaskService.Instance.GetTask(@"\" + $"{Name} - Autorun for {Environment.UserName}");
-
-                if (startupTask == null)
-                {
-                    Debug.WriteLine("\nCreating task");
-
-                    TaskDefinition taskDefinition = TaskService.Instance.NewTask();
-                    taskDefinition.RegistrationInfo.Author = "MicMuter";
-                    taskDefinition.RegistrationInfo.Description = "Starts MicMuter on log on";
-                    taskDefinition.Principal.RunLevel = TaskRunLevel.Highest;
-
-                    LogonTrigger trigger = new LogonTrigger
-                    {
-                        UserId = Environment.UserName
-                    };
-                    taskDefinition.Triggers.Add(trigger);
-
-                    taskDefinition.Actions.Add(System.Reflection.Assembly.GetExecutingAssembly().Location);
-
-                    startupTask = TaskService.Instance.RootFolder.RegisterTaskDefinition($"{Name} - Autorun for {Environment.UserName}", taskDefinition);
-                }
-                else
-                {
-                    Debug.WriteLine("\nTask already exists");
-                }
-            }
-            startupTask.Enabled = enabled;
-
-            Debug.WriteLine($"\nStartup Task Path: {startupTask.Path}, Enabled: {enabled}");
-        }
-        public static void DisposeStartupTask()
-        {
-            if (startupTask != null)
+                UseShellExecute = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                Verb = "runas"
+            };
+            using (var process = Process.Start(taskCreator))
             {
-                startupTask.Dispose();
-                startupTask = null;
-            }
-        }
-        public static void SetStartWithWindows(bool val)
-        {
-            SetStartupKey(val && !App.Settings.RequireAdmin);
-            if (HasAdminPrivileges)
-            {
-                SetStartupTask(val && App.Settings.RequireAdmin);
-                Debug.WriteLine("\n" + (!val && App.Settings.RequireAdmin ? "En" : "Dis") + "abled startup task");
-                DisposeStartupTask();
+                process.WaitForExit();
             }
         }
         public static void SetStartupKey(bool create)
@@ -199,7 +156,7 @@ namespace MicMuter
 
             if (create)
             {
-                key.SetValue(Name, System.Reflection.Assembly.GetExecutingAssembly().Location);
+                key.SetValue(Name, Assembly.GetExecutingAssembly().Location);
                 Debug.WriteLine("\nCreated startup registry key");
             }
             else
@@ -210,6 +167,29 @@ namespace MicMuter
                     Debug.WriteLine("\nDeleted startup registry key");
                 }
             }
+        }
+        public static void SetStartWithWindows(bool enable)
+        {
+            if (enable)
+            {
+                if (App.Settings.RequireAdmin)
+                {
+                    SetStartupKey(false);
+                    SetStartupTask(true);
+                }
+                else
+                {
+                    if (RequiredAdmin == true) SetStartupTask(false);
+                    SetStartupKey(true);
+                }
+            }
+            else
+            {
+                if (RequiredAdmin == true) SetStartupTask(false);
+                SetStartupKey(false);
+            }
+
+            Debug.WriteLine($"\n{(enable ? "Enabled" : "Disabled")} startup task");
         }
 
         public static void SaveSettings()
@@ -223,6 +203,7 @@ namespace MicMuter
             {
                 MessageBox.Show("Saving failed.\n" + e.Message, "Serialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            RequiredAdmin = App.Settings.RequireAdmin;
         }
 
         public static void LoadSettings()

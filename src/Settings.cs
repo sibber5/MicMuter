@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Xml;
 
 namespace MicMuter
 {
@@ -30,6 +31,8 @@ namespace MicMuter
                 NotifyPropertyChanged();
             }
         }
+        [System.Xml.Serialization.XmlAnyElement("ReqAdminComment")]
+        public XmlComment ReqAdminComment { get { return new XmlDocument().CreateComment("WARNING: Changing this setting from here might not work as expected."); } set { } }
         private bool _requireAdmin = false;
         public bool RequireAdmin
         {

@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MicMuter"
         mc:Ignorable="d"
-        Title="MicMuter Settings" MinHeight="237" MinWidth="290" Height="237" Width="337" ResizeMode="CanResize" Icon="/Icons/icon.ico"
-        Closing="MainWindow_Closing">
+        Title="MicMuter Settings" MinHeight="237" MinWidth="290" MaxHeight="237" MaxWidth="580" Height="237" Width="337" ResizeMode="CanResize" Icon="/Icons/icon.ico"
+        WindowStyle="ToolWindow" Closing="MainWindow_Closing">
 
     <Grid>
         <ComboBox x:Name="InputDevicesComboBox" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="10,10,10,0" 
@@ -21,15 +21,15 @@
         
         <CheckBox x:Name="StartWithWindowsCheckBox" Content="Start on Log in" ToolTipService.ShowOnDisabled="True" 
                   ToolTip="Start MicMuter after logging in" HorizontalAlignment="Left" Margin="10,68,0,0" VerticalAlignment="Top" 
-                  Checked="StartWithWindows_Checked" Unchecked="StartWithWindows_Unchecked"
+                  Checked="OnSettingChanged" Unchecked="OnSettingChanged"
                   IsChecked="{Binding Path=(local:App.Settings).StartWithWindows, Mode=TwoWay}"/>
-        
+
         <CheckBox x:Name="RequireAdminCheckBox" Content="Start with admin privileges" ToolTipService.ShowOnDisabled="True" 
                   ToolTip="In some fullscreen apps, the hotkey will not work without admin privilages" HorizontalAlignment="Left" 
-                  Margin="19,88,0,0" VerticalAlignment="Top" IsEnabled="False" 
+                  Margin="19,88,0,0" VerticalAlignment="Top" IsEnabled="{Binding IsChecked, ElementName=StartWithWindowsCheckBox}"
                   IsChecked="{Binding Path=(local:App.Settings).RequireAdmin, Mode=TwoWay, FallbackValue='False'}" 
                   Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
-        
+
         <CheckBox x:Name="StartMinimizedCheckBox" Content="Start Minimized" HorizontalAlignment="Left" Margin="10,108,0,0" 
                   VerticalAlignment="Top" IsChecked="{Binding Path=(local:App.Settings).StartMinimized, Mode=TwoWay}" 
                   Checked="OnSettingChanged" Unchecked="OnSettingChanged"/>
@@ -42,5 +42,6 @@
 
         <Button x:Name="SaveButton" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,10" 
                 Width="75" Click="SaveButton_Click" IsEnabled="False"/>
+
     </Grid>
 </Window>

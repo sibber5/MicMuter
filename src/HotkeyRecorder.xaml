@@ -3,15 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MicMuter"
         mc:Ignorable="d"
-        Topmost="True"
-        Visibility="Visible" AllowsTransparency="True" Background="Transparent"
-        Title="HotkeyRecorder" Height="85" Width="211" ResizeMode="NoResize" WindowStyle="None" Icon="/Icons/icon.ico"
-        Loaded="HotkeyRecorder_Loaded"
-        Closing="HotkeyRecorder_Closing">
+        Topmost="True" ShowInTaskbar="False"
+        Visibility="Visible" AllowsTransparency="True" Background="#B2000000"
+        Title="HotkeyRecorder" MinHeight="85" MinWidth="211" Height="85" Width="211" ResizeMode="NoResize" WindowStyle="None" Icon="/Icons/icon.ico"
+        WindowStartupLocation="Manual"
+        Loaded="HotkeyRecorder_Loaded">
     <Grid>
-        <TextBox x:Name="MuteShortcut" HorizontalAlignment="Center" VerticalAlignment="Center" Width="182" Height="26" TextAlignment="Center" IsReadOnly="True" Margin="14,5,15,54" FontSize="14"/>
-        <Label x:Name="ShortcutsLabel" Content="Press 'Enter' to Confirm Hotkey&#x0a;        Press 'Esc' to Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="White" FontSize="14" Height="44" Width="202" Margin="4,33,5,8"/>
+        <TextBox x:Name="MuteShortcut" HorizontalAlignment="Center" VerticalAlignment="Center" Width="182" Height="26" TextAlignment="Center" IsReadOnly="True" Margin="14,5,15,54" FontSize="14">
+            <TextBox.Effect>
+                <DropShadowEffect ShadowDepth="0" Opacity="1" BlurRadius="5"/>
+            </TextBox.Effect>
+        </TextBox>
+        <Label x:Name="ShortcutsLabel" UseLayoutRounding="True" Content="Press 'Enter' to Confirm Hotkey&#x0a;        Press 'Esc' to Cancel" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Transparent" Foreground="White" FontSize="14" Height="44" Width="202" Margin="4,33,5,8">
+            <Label.Effect>
+                <DropShadowEffect ShadowDepth="0" Opacity="1" BlurRadius="5"/>
+            </Label.Effect>
+        </Label>
     </Grid>
 </Window>

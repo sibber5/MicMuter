@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Windows;
-using System.Windows.Media;
 
 namespace MicMuter
 {
@@ -56,19 +55,6 @@ namespace MicMuter
             OnSettingChanged(sender, null);
         }
 
-        private void StartWithWindows_Checked(object sender, RoutedEventArgs e)
-        {
-            if (App.HasAdminPrivileges) RequireAdminCheckBox.IsEnabled = true;
-
-            OnSettingChanged(sender, null);
-        }
-        private void StartWithWindows_Unchecked(object sender, RoutedEventArgs e)
-        {
-            RequireAdminCheckBox.IsEnabled = false;
-
-            OnSettingChanged(sender, null);
-        }
-
         private void OnSettingChanged(object sender, RoutedEventArgs e)
         {
             if (SaveButton != null) SaveButton.IsEnabled = true;
@@ -100,43 +86,9 @@ namespace MicMuter
             InputDevicesComboBox.SelectedIndex = selectedIndex;
 
             MuteHotkeyButton.Content = GetHotkeyString();
-
-            if (App.HasAdminPrivileges)
-            {
-                RequireAdminCheckBox.IsEnabled = App.Settings.StartWithWindows;
-            }
-            else
-            {
-                if (App.Settings.RequireAdmin)
-                {
-                    StartWithWindowsCheckBox.IsEnabled = false;
-                    StartWithWindowsCheckBox.ToolTip = "Run MicMuter as Administrator to change this setting.\n" + StartWithWindowsCheckBox.ToolTip;
-                }
-
-                RequireAdminCheckBox.IsEnabled = false;
-                RequireAdminCheckBox.ToolTip = "Run MicMuter as Administrator to change this setting.\n" + RequireAdminCheckBox.ToolTip;
-            }
         }
 
         #region Hotkey related methods
-
-        private Window MakeGrayWindow(Window mainWindow)
-        {
-            return new Window()
-            {
-                Background = Brushes.Black,
-                Opacity = 0.7,
-                AllowsTransparency = true,
-                WindowStyle = WindowStyle.None,
-                WindowState = WindowState.Normal,
-                Width = mainWindow.Width - 14,
-                Height = mainWindow.Height - 7,
-                Left = mainWindow.Left + 7,
-                Top = mainWindow.Top,
-                IsHitTestVisible = false,
-                ShowInTaskbar = false
-            };
-        }
 
         public void ApplyHotkey(string hotkeyText, int[] keys)
         {
@@ -151,26 +103,19 @@ namespace MicMuter
             App.SetNewHotkey(keys[0], keys[1]);
         }
 
-        public void RemoveOwner()
-        {
-            this.Owner = null;
-        }
-
         public void OpenHotkeyRecorder()
         {
-            Window mainWindow = Application.Current.MainWindow;
             this.IsHitTestVisible = false;
-            var grayOut = MakeGrayWindow(mainWindow);
-            grayOut.Show();
+            this.ResizeMode = ResizeMode.NoResize;
             Window hotkeyRecorder = new HotkeyRecorder()
             {
-                Left = mainWindow.Left + mainWindow.Width / 2 - 105,
-                Top = mainWindow.Top + mainWindow.Height / 2 - 43
+                Height = this.Height - 16 + 7,
+                Width = this.Width - 16,
+                Owner = this,
+                Top = this.Top + 1,
+                Left = this.Left + 8
             };
-            HotkeyRecorder.SetGrayOutWindow(grayOut);
             hotkeyRecorder.Show();
-            this.Owner = hotkeyRecorder;
-            grayOut.Owner = hotkeyRecorder;
         }
 
         private string GetHotkeyString()
@@ -194,7 +139,7 @@ namespace MicMuter
             sb.Append(((System.Windows.Input.Key)App.Settings.HotkeyKey).ToString());
             return sb.ToString();
         }
-        
+
         #endregion
     }
 }
