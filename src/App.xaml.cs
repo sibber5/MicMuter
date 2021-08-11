@@ -138,7 +138,7 @@ namespace MicMuter
             MessageBox.Show("Administrator privilages required to set the startup task (enable/disable autorun on log in)", "UAC", MessageBoxButton.OK, MessageBoxImage.Information);
             string pathToExe = Assembly.GetExecutingAssembly().Location;
             ProcessStartInfo taskCreator = new ProcessStartInfo(System.IO.Path.GetDirectoryName(pathToExe) + "\\StartupTaskCreator\\StartupTaskCreator.exe",
-                $"{(enable ? "1" : "0")} {App.Name} {pathToExe}")
+                $"{(enable ? "1" : "0")} {App.Name} \"{pathToExe}\"")
             {
                 UseShellExecute = true,
                 WindowStyle = ProcessWindowStyle.Hidden,

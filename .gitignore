@@ -40,6 +40,6 @@ ServiceFabricBackup/
 # MSBuild Binary and Structured Log
 *.binlog
 
-src/bin/**
-src/obj/**
-src/publish/**
+**/bin
+**/obj
+**/publish
