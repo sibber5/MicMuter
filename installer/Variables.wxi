@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <!-- BuildVersion is defined in MicMuter_Installer.wixproj -->
+  
+  <!-- New GUID every new version -->
+  <?define ProductCode = "{9458D589-79EB-4C42-BF42-3660E2D7CBEE}" ?>
+  
+  <!-- Same GUID for all versions of same product -->
+  <?define UpgradeCode = "{81A71325-ADB9-4E20-BCBF-16A672BB481C}" ?>
+  
+  <?define ProductName = "MicMuter" ?>
+  
+  <?define Manufacturer = "cyberrex5" ?>
+</Include>

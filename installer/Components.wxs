@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?include Variables.wxi ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Fragment>
+    
+    <DirectoryRef Id="INSTALLFOLDER">
+      
+      <!-- Installs bat file that deletes the usersettings folder in appdata -->
+      <Component Id="DelUserSettingsScript" Guid="{D3A0E475-7484-42E5-9B9F-43902E769EB7}">
+        <File Id="deldatScript" KeyPath="yes" Source="$(var.ProjectDir)\deldat.bat" Hidden="yes" />
+      </Component>
+      
+      <Component Id="AppDesktopShortcut" Guid="{0D1A8FE9-BA6E-4E7B-B78A-AE0D616A190D}">
+        <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.ProductName)" Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="DesktopShortcut"
+                  Name="$(var.ProductName)"
+                  Directory="DesktopFolder"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Target="[INSTALLFOLDER]MicMuter.exe"
+                  Icon="icon.ico"
+                  />
+        <RemoveFile Id="RDesktopShortcut" Name="DesktopMicMuter" On="uninstall" />
+      </Component>
+
+      <Component Id="AppStartMenuShortcut" Guid="{CE2FCE0E-6347-4708-9000-F6F8EF2AC231}">
+        <RegistryValue Root="HKCU" Key="Software\$(var.Manufacturer)\$(var.ProductName)" Type="integer" Value="1" KeyPath="yes" />
+        <Shortcut Id="StartMenuShortcut"
+                  Name="$(var.ProductName)"
+                  Directory="ProgramMenuFolder"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Target="[INSTALLFOLDER]\MicMuter.exe"
+                  Icon="icon.ico"
+                  />
+        <RemoveFile Id="RStartMenuShortcut" Name="StartMenuShortcut" On="uninstall" />
+      </Component>
+      
+    </DirectoryRef>
+    
+  </Fragment>
+  
+</Wix>

@@ -8,22 +8,40 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicMuter", "MicMuter.csproj
 		{63EBB4B5-9E31-4751-A07B-FC03285EC63F} = {63EBB4B5-9E31-4751-A07B-FC03285EC63F}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartupTaskCreator", "..\startupt_task_creator\StartupTaskCreator.csproj", "{63EBB4B5-9E31-4751-A07B-FC03285EC63F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StartupTaskCreator", "..\startup_task_creator\StartupTaskCreator.csproj", "{63EBB4B5-9E31-4751-A07B-FC03285EC63F}"
+EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MicMuter_Installer", "..\installer\MicMuter_Installer.wixproj", "{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{7DF56945-111A-4E59-A159-AEED12F4803A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DF56945-111A-4E59-A159-AEED12F4803A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DF56945-111A-4E59-A159-AEED12F4803A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{7DF56945-111A-4E59-A159-AEED12F4803A}.Debug|x86.Build.0 = Debug|Any CPU
 		{7DF56945-111A-4E59-A159-AEED12F4803A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7DF56945-111A-4E59-A159-AEED12F4803A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DF56945-111A-4E59-A159-AEED12F4803A}.Release|x86.ActiveCfg = Release|Any CPU
+		{7DF56945-111A-4E59-A159-AEED12F4803A}.Release|x86.Build.0 = Release|Any CPU
 		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Debug|x86.Build.0 = Debug|Any CPU
 		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Release|x86.ActiveCfg = Release|Any CPU
+		{63EBB4B5-9E31-4751-A07B-FC03285EC63F}.Release|x86.Build.0 = Release|Any CPU
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Debug|x86.ActiveCfg = Debug|x86
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Debug|x86.Build.0 = Debug|x86
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Release|Any CPU.ActiveCfg = Release|x86
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Release|x86.ActiveCfg = Release|x86
+		{BE9C8BC9-78C7-4BCA-9B61-491B3B77CAB5}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?include Variables.wxi ?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <Product Id="$(var.ProductCode)"
+           Name="$(var.ProductName)"
+           Language="1033"
+           Version="$(var.BuildVersion)"
+           Manufacturer="$(var.Manufacturer)"
+           UpgradeCode="$(var.UpgradeCode)">
+    
+		<Package InstallerVersion="200"
+             Compressed="yes"
+             InstallScope="perMachine"
+             Manufacturer="$(var.Manufacturer)"
+             Description="Mute your microphone from anywhere in windows with a keyboard shortcut."
+             Languages="1033"
+             />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of $(var.ProductName) is already installed." />
+    
+		<MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="icon.ico" SourceFile="$(var.MicMuter.ProjectDir)\Icons\icon.ico" />
+
+    <!-- Icon in Programs and Features -->
+    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+    <!-- Link in Programs and Features -->
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/cyberrex5/MicMuter" />
+
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+
+    <UIRef Id="WixUI_CustomInstallDir" />
+
+    <WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)\Assets\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)\Assets\dialog.bmp" />
+    
+		<Feature Id="App" Title="$(var.ProductName)" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+			<ComponentGroupRef Id="ProductComponentsGenerated" />
+      <ComponentRef Id="DelUserSettingsScript" />
+		</Feature>
+    <Feature Id="FDesktopShortcut" Title="Desktop shortcut" Level="0">
+      <Condition Level="1">CREATEDESKTOPSHORTCUT="yes"</Condition>
+      <ComponentRef Id="AppDesktopShortcut" />
+    </Feature>
+    <Feature Id="FStartMenuShortcut" Title="Start menu shortcut" Level="0">
+      <Condition Level="1">CREATESTARTMENYSHORTCUT="yes"</Condition>
+      <ComponentRef Id="AppStartMenuShortcut" />
+    </Feature>
+
+    <CustomAction Id="DeleteUserSettings"
+                  Execute="deferred"
+                  Return="ignore"
+                  ExeCommand="[INSTALLFOLDER]deldat.bat $(var.ProductName)"
+                  Directory="INSTALLFOLDER"
+                  />
+    
+    <InstallExecuteSequence>
+      <Custom Action="DeleteUserSettings" Before="RemoveFiles">(REMOVE="ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+    </InstallExecuteSequence>
+    
+	</Product>
+
+</Wix>
