@@ -4,15 +4,12 @@ using System.Windows;
 
 namespace MicMuter
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
-
+            App.MainWind = this;
             LoadMainWindow();
 
             SaveButton.IsEnabled = false;
@@ -24,7 +21,7 @@ namespace MicMuter
         {
             if (SaveButton.IsEnabled)
             {
-                MessageBoxResult result = MessageBox.Show("You Haven't saved\nDo you want to close and discard changes?", "Changes not saved", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                MessageBoxResult result = MessageBox.Show("Changes haven't been saved.\nClose and discard changes?", "Changes not saved", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
                 switch (result)
                 {
@@ -33,13 +30,14 @@ namespace MicMuter
                         break;
                     case MessageBoxResult.No:
                         e.Cancel = true;
-                        break;
+                        return;
                 }
             }
             if (App.Settings.NotifyRunning)
             {
                 App.ShowRunningNotification();
             }
+            App.MainWind = null;
         }
 
         private void MuteHotkeyButton_Clicked(object sender, RoutedEventArgs e)

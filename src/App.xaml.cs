@@ -12,6 +12,8 @@ namespace MicMuter
 {
     public partial class App : Application
     {
+        public static MainWindow MainWind = null;
+
         public static readonly string Name = "MicMuter";
         public static readonly string SavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\MicMuter\";
         public static readonly string SaveFileName = @"UserSettings.xml";

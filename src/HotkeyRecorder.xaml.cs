@@ -6,9 +6,6 @@ using System.Windows.Input;
 
 namespace MicMuter
 {
-    /// <summary>
-    /// Interaction logic for HotkeyRecorder.xaml
-    /// </summary>
     public partial class HotkeyRecorder : Window
     {
         private int[] keys = new int[2];
@@ -23,7 +20,7 @@ namespace MicMuter
 
         private void HotkeyRecorder_Loaded(object sender, RoutedEventArgs e)
         {
-            var window = Window.GetWindow(this);
+            var window = GetWindow(this);
 
             window.KeyDown += OnKeyDown;
             window.KeyUp += OnKeyUp;
@@ -39,7 +36,7 @@ namespace MicMuter
                     this.Close();
                     break;
                 case Key.Return:
-                    if (hotkeyHasBeenRecorded) ((MainWindow)Application.Current.MainWindow).ApplyHotkey(String.Join("+", keyNames), keys);
+                    if (hotkeyHasBeenRecorded) App.MainWind.ApplyHotkey(string.Join("+", keyNames), keys);
                     Owner.IsHitTestVisible = true;
                     Owner.ResizeMode = ResizeMode.CanResize;
                     this.Close();
@@ -86,7 +83,7 @@ namespace MicMuter
                     keys[0] = (int)key;
                     keyNames.Add(key.ToString());
                     hotkeyHasBeenRecorded = true;
-                    MuteShortcut.Text = String.Join("+", keyNames);
+                    MuteShortcut.Text = string.Join("+", keyNames);
                 }
                 else
                 {
@@ -114,7 +111,7 @@ namespace MicMuter
                 keys[1] = keys[1] | (int)WindowsHotkeys.KeyModifier.Alt;
                 keyNames.Add("Alt");
             }
-            MuteShortcut.Text = String.Join("+", keyNames);
+            MuteShortcut.Text = string.Join("+", keyNames);
         }
 
         private bool IsModifierKey(Key key)
