@@ -9,4 +9,6 @@ If you have any issues try installing [the latest version of the .NET Framework]
 # Libraries used
 [NAudio](https://github.com/naudio/NAudio)<br/>
 [TaskScheduler](https://github.com/dahall/taskscheduler)<br/>
-[NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)
+[NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)<br/>
+<br/>
+For the installer: [WiX Toolset](https://wixtoolset.org/)
