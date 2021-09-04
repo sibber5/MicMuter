@@ -34,29 +34,63 @@
 
     <WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)\Assets\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)\Assets\dialog.bmp" />
-    
-		<Feature Id="App" Title="$(var.ProductName)" Level="1" ConfigurableDirectory="INSTALLFOLDER">
-			<ComponentGroupRef Id="ProductComponentsGenerated" />
-      <ComponentRef Id="DelUserSettingsScript" />
-		</Feature>
+
+    <Property Id="DOTNETFRAMEWORKVERSION">
+      <RegistrySearch Id="DotNet48Check"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Net Framework Setup\NDP\v4\Full"
+                      Name="Version"
+                      Type="raw"
+                      />
+    </Property>
+
+    <Feature Id="App" Title="$(var.ProductName)" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentGroupRef Id="ProductComponentsGenerated" />
+      <ComponentRef Id="DelDirScript" />
+    </Feature>
     <Feature Id="FDesktopShortcut" Title="Desktop shortcut" Level="0">
-      <Condition Level="1">CREATEDESKTOPSHORTCUT="yes"</Condition>
+      <Condition Level="1"><![CDATA[CREATEDESKTOPSHORTCUT="yes"]]></Condition>
       <ComponentRef Id="AppDesktopShortcut" />
     </Feature>
     <Feature Id="FStartMenuShortcut" Title="Start menu shortcut" Level="0">
-      <Condition Level="1">CREATESTARTMENYSHORTCUT="yes"</Condition>
+      <Condition Level="1"><![CDATA[CREATESTARTMENYSHORTCUT="yes"]]></Condition>
       <ComponentRef Id="AppStartMenuShortcut" />
+    </Feature>
+    <Feature Id="DotNet48Installer" Title=".Net Framework 4.8" Level="0">
+      <!-- Install feature if "DOTNETFRAMEWORKVERSION" does not start with "4.8" (DOTNETFRAMEWORKVERSION is of type DWORD (string)) -->
+      <Condition Level="1"><![CDATA[NOT (DOTNETFRAMEWORKVERSION << "4.8")]]></Condition>
+      <ComponentRef Id="DotNetInstaller" />
     </Feature>
 
     <CustomAction Id="DeleteUserSettings"
-                  Execute="deferred"
-                  Return="ignore"
-                  ExeCommand="[INSTALLFOLDER]deldat.bat $(var.ProductName)"
                   Directory="INSTALLFOLDER"
+                  Execute="deferred"
+                  ExeCommand='[INSTALLFOLDER]deldir.bat "%appdata%\$(var.ProductName)"'
+                  Return="ignore"
                   />
-    
+
+
+    <CustomAction Id="InstallDotNet48"
+                  Directory="INSTALLERTEMPFOLDER"
+                  Execute="deferred"
+                  Impersonate="no"
+                  ExeCommand="[INSTALLERTEMPFOLDER]ndp48-web.exe"
+                  Return="ignore"
+                  />
+
+    <CustomAction Id="DeleteDotNetInstaller"
+                  Directory="INSTALLFOLDER"
+                  Execute="deferred"
+                  ExeCommand='[INSTALLFOLDER]deldir.bat "%temp%\$(var.ProductName)Installer"'
+                  Return="ignore"
+                  />
+
     <InstallExecuteSequence>
-      <Custom Action="DeleteUserSettings" Before="RemoveFiles">(REMOVE="ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+      <!-- Execute only when uninstalling (not upgrading) -->
+      <Custom Action="DeleteUserSettings" Before="RemoveFiles"><![CDATA[(REMOVE="ALL") AND (NOT UPGRADINGPRODUCTCODE)]]></Custom>
+      <!-- Execute if feature "DotNet48Installer" is installed -->
+      <Custom Action="InstallDotNet48" Before="InstallFinalize"><![CDATA[(NOT Installed) AND (&DotNet48Installer = 3)]]></Custom>
+      <Custom Action="DeleteDotNetInstaller" After="InstallDotNet48" />
     </InstallExecuteSequence>
     
 	</Product>

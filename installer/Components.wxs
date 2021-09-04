@@ -5,10 +5,9 @@
   <Fragment>
     
     <DirectoryRef Id="INSTALLFOLDER">
-      
-      <!-- Installs bat file that deletes the usersettings folder in appdata -->
-      <Component Id="DelUserSettingsScript" Guid="{D3A0E475-7484-42E5-9B9F-43902E769EB7}">
-        <File Id="deldatScript" KeyPath="yes" Source="$(var.ProjectDir)\deldat.bat" Hidden="yes" />
+
+      <Component Id="DelDirScript" Guid="{044722FA-E3CD-455D-9A35-CB2518BA9B7C}">
+        <File Id="deldirBatFile" KeyPath="yes" Source="$(var.ProjectDir)\Extra Components\deldir.bat" Hidden="yes" />
       </Component>
       
       <Component Id="AppDesktopShortcut" Guid="{0D1A8FE9-BA6E-4E7B-B78A-AE0D616A190D}">
@@ -35,6 +34,14 @@
         <RemoveFile Id="RStartMenuShortcut" Name="StartMenuShortcut" On="uninstall" />
       </Component>
       
+    </DirectoryRef>
+
+    <DirectoryRef Id="INSTALLERTEMPFOLDER">
+
+      <Component Id="DotNetInstaller" Guid="{8994EB69-FA1E-4A97-97C5-47F65061A712}">
+        <File Id="DotNetInstallerExe" KeyPath="yes" Source="$(var.ProjectDir)\Extra Components\ndp48-web.exe" />
+      </Component>
+
     </DirectoryRef>
     
   </Fragment>

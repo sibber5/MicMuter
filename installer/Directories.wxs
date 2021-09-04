@@ -13,6 +13,10 @@
 
       <Directory Id="DesktopFolder" />
 
+      <Directory Id="TempFolder">
+        <Directory Id="INSTALLERTEMPFOLDER" Name="$(var.ProductName)Installer" />
+      </Directory>
+
     </Directory>
   </Fragment>
 
