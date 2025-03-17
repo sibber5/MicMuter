@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MicMuter.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="270"
+        x:Class="MicMuter.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/icon.ico"
+        Title="MicMuter"
+        Width="430" Height="270"
+        MinWidth="220" MinHeight="150">
+
+    <Grid ColumnDefinitions="*,Auto"
+          RowDefinitions="32,5,32,5,32"
+          Margin="20"
+          Name="SettingsGrid">
+        <Grid.Styles>
+            <Style Selector="Grid > TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </Grid.Styles>
+        
+        <TextBlock Grid.Column="0" Grid.Row="0" Text="Device" />
+        <ComboBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
+                  MinWidth="150" HorizontalAlignment="Right"
+                  SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
+                  ItemsSource="{Binding MicFriendlyNames}"
+                  DropDownOpened="ComboBox_OnDropDownOpened" />
+        
+        <TextBlock Grid.Column="0" Grid.Row="2" Text="Mute shortcut" />
+        <Button Grid.Column="0" Grid.ColumnSpan="2"  Grid.Row="2"
+                MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+        
+        <TextBlock Grid.Column="0" Grid.Row="4" Text="Run on startup" />
+        <ToggleSwitch Grid.Column="1" Grid.Row="4" HorizontalAlignment="Right" />
+        
+    </Grid>
+    
+
+</Window>
