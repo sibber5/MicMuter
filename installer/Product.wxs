@@ -63,10 +63,11 @@
     </Feature>
 
     <CustomAction Id="DeleteUserSettings"
-                  Directory="INSTALLFOLDER"
+                  Directory="TempFolder"
                   Execute="deferred"
-                  ExeCommand='[INSTALLFOLDER]deldir.bat "%appdata%\$(var.ProductName)"'
-                  Return="ignore"
+                  Impersonate="yes"
+                  ExeCommand='cmd.exe /c "if exist "%appdata%\$(var.ProductName)" rmdir /s /q "%appdata%\$(var.ProductName)""'
+                  Return="check"
                   />
 
 
@@ -81,8 +82,9 @@
     <CustomAction Id="DeleteDotNetInstaller"
                   Directory="INSTALLFOLDER"
                   Execute="deferred"
-                  ExeCommand='[INSTALLFOLDER]deldir.bat "%temp%\$(var.ProductName)Installer"'
-                  Return="ignore"
+                  Impersonate="yes"
+                  ExeCommand='cmd.exe /c "if exist "%temp%\$(var.ProductName)Installer" rmdir /s /q "%temp%\$(var.ProductName)Installer""'
+                  Return="check"
                   />
 
     <InstallExecuteSequence>
