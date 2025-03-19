@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
 using MicMuter.MainWindow;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace MicMuter;
 
-public partial class App : Application
+public class App : Application
 {
     private readonly IServiceProvider _services;
 
@@ -24,6 +25,8 @@ public partial class App : Application
     {
         ServiceCollection services = new();
 
+        services.AddTransient(typeof(LazyService<>));
+        
         services.AddSingleton<Settings>();
         services.AddSingleton<MicMuterService>();
         
@@ -34,6 +37,8 @@ public partial class App : Application
         services.AddSingleton<MainWindowViewModel>();
         
         services.AddSingleton<MainWindow.MainWindow>();
+
+        services.AddSingleton<Func<IPlatformHandle?>>(provider => provider.GetRequiredService<MainWindow.MainWindow>().TryGetPlatformHandle);
         
         return services.BuildServiceProvider();
     }

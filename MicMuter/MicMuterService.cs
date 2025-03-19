@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
+using Avalonia.Platform;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
 
@@ -7,23 +9,46 @@ namespace MicMuter;
 
 internal sealed class MicMuterService : IDisposable
 {
-    public bool IsMicMuted { get; private set; }
+    public bool IsMicMuted => Mic?.IsMuted == true;
     
     public event EventHandler<bool>? MuteStatusChanged;
     
     private IGlobalHotkey? _hotkey;
     private readonly IGlobalHotkeyFactory _hotkeyFactory;
 
-    private MicDevice? _mic;
-    
-    public MicMuterService(IGlobalHotkeyFactory hotkeyFactory, Settings settings)
+    private readonly LazyService<Func<IPlatformHandle?>> _getMainWindowHandle;
+
+    private IMicDevice? _mic;
+    private IMicDevice? Mic
+    {
+        get => _mic;
+        set
+        {
+            if (_mic is null)
+            {
+                if (value is null) return;
+                
+                _mic = value;
+                _mic.MuteStatusChanged += MicOnMuteStatusChanged;
+                return;
+            }
+
+            _mic.MuteStatusChanged -= MicOnMuteStatusChanged;
+            _mic = value;
+            if (_mic is not null) _mic.MuteStatusChanged += MicOnMuteStatusChanged;
+        }
+    }
+
+    public MicMuterService(IGlobalHotkeyFactory hotkeyFactory, Settings settings, LazyService<Func<IPlatformHandle?>> getMainWindowHandle)
     {
         _hotkeyFactory = hotkeyFactory;
-        _mic = settings.MicDevice;
-        UpdateIsMicMuted();
+        _getMainWindowHandle = getMainWindowHandle;
+        Mic = settings.MicDevice;
         UpdateMuteShortcut(settings.MuteShortcut);
         settings.PropertyChanged += Settings_OnPropertyChanged;
     }
+
+    private void MicOnMuteStatusChanged(object? sender, bool e) => MuteStatusChanged?.Invoke(this, e);
 
     private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -34,17 +59,13 @@ internal sealed class MicMuterService : IDisposable
         }
         else if (nameof(Settings.MicDevice).Equals(e.PropertyName, StringComparison.Ordinal))
         {
-            _mic = settings.MicDevice;
-            UpdateIsMicMuted();
+            Mic = settings.MicDevice;
         }
     }
 
     private void OnHotkeyPressed(object? sender, EventArgs e)
     {
-        if (_mic is null) return;
-        
-        _mic.ToggleMute();
-        UpdateIsMicMuted();
+        Mic?.ToggleMute();
     }
 
     private void UpdateMuteShortcut(Shortcut newShortcut)
@@ -59,16 +80,10 @@ internal sealed class MicMuterService : IDisposable
             return;
         }
 
-        _hotkey = _hotkeyFactory.Register(newShortcut, 0);
+        _hotkey = _hotkeyFactory.Register(newShortcut, _getMainWindowHandle.Value()!.Handle);
         _hotkey.Pressed += OnHotkeyPressed;
+        Debug.WriteLine($"[{nameof(MicMuterService)}] Registered new hotkey: {_hotkey.Shortcut}");
     }
 
-    private void UpdateIsMicMuted()
-    {
-        if (_mic is null) return;
-        IsMicMuted = _mic.IsMuted;
-        MuteStatusChanged?.Invoke(this, IsMicMuted);
-    }
-    
     public void Dispose() => _hotkey?.Dispose();
 }

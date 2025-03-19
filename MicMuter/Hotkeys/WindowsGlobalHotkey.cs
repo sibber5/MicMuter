@@ -21,7 +21,10 @@ internal sealed class WindowsGlobalHotkey : IGlobalHotkey
         _hWnd = hWnd;
         _id = id;
         _monitor = new(_hWnd);
-        _monitor.WindowMessageReceived += (_, _) => Pressed?.Invoke(this, EventArgs.Empty);
+        _monitor.WindowMessageReceived += (_, e) =>
+        {
+            if (e.Message.MessageId == 0x0312) Pressed?.Invoke(this, EventArgs.Empty);
+        };
     }
 
     private void Unregister()

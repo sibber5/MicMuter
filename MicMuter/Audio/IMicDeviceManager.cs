@@ -4,7 +4,7 @@ namespace MicMuter.Audio;
 
 public interface IMicDeviceManager
 {
-    IReadOnlyList<MicDevice> GetMicDevices();
-    MicDevice GetDefaultMicDevice();
-    MicDevice GetMicDeviceById(string id);
+    IReadOnlyList<IMicDevice> GetMicDevices();
+    IMicDevice GetDefaultMicDevice();
+    IMicDevice GetMicDeviceById(string id);
 }

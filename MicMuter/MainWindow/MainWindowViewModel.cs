@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
@@ -8,15 +7,12 @@ namespace MicMuter.MainWindow;
 
 public sealed partial class MainWindowViewModel : ObservableObject
 {
-    public nint Hwnd { get; internal set; }
-    
-    private IReadOnlyList<MicDevice> _mics;
-
-    public IEnumerable<string> MicFriendlyNames => (_mics = _micDeviceManager.GetMicDevices()).Select(x => x.FriendlyName);
+    [ObservableProperty]
+    private IReadOnlyList<IMicDevice> _mics;
 
     [ObservableProperty]
-    private int _selectedIndex;
-    partial void OnSelectedIndexChanged(int value) => _settings.MicDevice = value > -1 ? _mics[value] : null;
+    private IMicDevice? _selectedDevice;
+    partial void OnSelectedDeviceChanged(IMicDevice? value) => _settings.MicDevice = value;
     
     [ObservableProperty]
     private Shortcut _shortcut;
@@ -30,10 +26,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _settings = settings;
         _micDeviceManager = micDeviceManager;
         _mics = _micDeviceManager.GetMicDevices();
-        var defaultDevice = _micDeviceManager.GetDefaultMicDevice();
-        _selectedIndex = _mics.Index().FirstOrDefault(t => t.Item.Id == defaultDevice.Id).Index;
+        SelectedDevice = _micDeviceManager.GetDefaultMicDevice();
     }
 
+    public void RefreshDeviceList()
+    {
+        Mics = _micDeviceManager.GetMicDevices();
+    }
+    
     public void NotifyPropertyChanged(string propertyName)
     {
         bool b = false;

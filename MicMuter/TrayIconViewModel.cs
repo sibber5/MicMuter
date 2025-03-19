@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Diagnostics;
+using Avalonia.Controls;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 
@@ -12,14 +13,18 @@ internal sealed partial class TrayIconViewModel : ObservableObject
     [ObservableProperty]
     private WindowIcon _currentIcon;
 
+    private readonly MicMuterService _micMuterService;
+    
     public TrayIconViewModel(MicMuterService micMuterService)
     {
         _currentIcon = _unmutedIcon;
-        micMuterService.MuteStatusChanged += MicMuterService_OnMuteStatusChanged;
+        _micMuterService = micMuterService;
+        _micMuterService.MuteStatusChanged += MicMuterService_OnMuteStatusChanged;
     }
 
     private void MicMuterService_OnMuteStatusChanged(object? sender, bool isMuted)
     {
+        Debug.WriteLine($"[{nameof(TrayIconViewModel)}] Muted: {isMuted}");
         CurrentIcon = isMuted ? _mutedIcon : _unmutedIcon;
     }
 }

@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using MicMuter.Audio;
 
 namespace MicMuter.MainWindow;
 
@@ -23,14 +24,13 @@ public partial class MainWindow : Window
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        _vm.Hwnd = TryGetPlatformHandle()?.Handle ?? throw new InvalidOperationException("Failed to get window handle.");
         ResizeWindowToFitDeviceCombobox();
         _loaded = true;
     }
 
     private void DeviceCombobox_OnDropDownOpened(object? sender, EventArgs e)
     {
-        _vm.NotifyPropertyChanged(nameof(MainWindowViewModel.MicFriendlyNames));
+        _vm.RefreshDeviceList();
     }
     
     private void DeviceCombobox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -41,9 +41,9 @@ public partial class MainWindow : Window
 
     private void ResizeWindowToFitDeviceCombobox()
     {
-        if (DeviceCombobox.SelectedIndex == -1 || string.IsNullOrEmpty((string?)DeviceCombobox.SelectedItem)) return;
+        if (DeviceCombobox.SelectedIndex == -1 || string.IsNullOrEmpty(((IMicDevice?)DeviceCombobox.SelectedItem)?.FriendlyName)) return;
         
-        double comboboxWidth = 44 + GetRenderedTextWidth((string)DeviceCombobox.SelectedItem!, DeviceCombobox.FontFamily, DeviceCombobox.FontSize);
+        double comboboxWidth = 44 + GetRenderedTextWidth(((IMicDevice)DeviceCombobox.SelectedItem!).FriendlyName, DeviceCombobox.FontFamily, DeviceCombobox.FontSize);
         var diff = this.Bounds.Width - 110 - comboboxWidth;
         if (diff < 0)
         {

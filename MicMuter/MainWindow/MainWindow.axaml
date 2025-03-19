@@ -24,9 +24,15 @@
         <TextBlock Grid.Column="0" Grid.Row="0" Text="Device" />
         <ComboBox Name="DeviceCombobox" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
                   MinWidth="150" HorizontalAlignment="Right"
-                  SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-                  ItemsSource="{Binding MicFriendlyNames, Mode=OneWay}"
-                  DropDownOpened="DeviceCombobox_OnDropDownOpened" SelectionChanged="DeviceCombobox_OnSelectionChanged" />
+                  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
+                  ItemsSource="{Binding Mics, Mode=OneWay}"
+                  DropDownOpened="DeviceCombobox_OnDropDownOpened" SelectionChanged="DeviceCombobox_OnSelectionChanged">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding FriendlyName, Mode=OneTime}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
         
         <TextBlock Grid.Column="0" Grid.Row="2" Text="Mute shortcut" />
         <Button Name="ShortcutButton" Grid.Column="0" Grid.ColumnSpan="2"  Grid.Row="2"

@@ -7,7 +7,7 @@ namespace MicMuter;
 public sealed partial class Settings : ObservableObject
 {
     [ObservableProperty]
-    private MicDevice? _micDevice;
+    private IMicDevice? _micDevice;
     
     [ObservableProperty]
     private Shortcut _muteShortcut;
