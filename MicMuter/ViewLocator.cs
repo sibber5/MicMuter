@@ -2,7 +2,7 @@ using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using CommunityToolkit.Mvvm.ComponentModel;
-using MicMuter.ViewModels;
+using MicMuter.MainWindow;
 
 namespace MicMuter;
 

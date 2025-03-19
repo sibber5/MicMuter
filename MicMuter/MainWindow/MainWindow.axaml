@@ -1,15 +1,15 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:MicMuter.ViewModels"
+        xmlns:vm="using:MicMuter.MainWindow"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="270"
-        x:Class="MicMuter.Views.MainWindow"
+        x:Class="MicMuter.MainWindow.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/icon.ico"
+        Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
-        Width="430" Height="270"
-        MinWidth="220" MinHeight="150">
+        Width="370" Height="150"
+        MinWidth="370" MinHeight="150">
 
     <Grid ColumnDefinitions="*,Auto"
           RowDefinitions="32,5,32,5,32"
@@ -22,15 +22,19 @@
         </Grid.Styles>
         
         <TextBlock Grid.Column="0" Grid.Row="0" Text="Device" />
-        <ComboBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
+        <ComboBox Name="DeviceCombobox" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
                   MinWidth="150" HorizontalAlignment="Right"
                   SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}"
-                  ItemsSource="{Binding MicFriendlyNames}"
-                  DropDownOpened="ComboBox_OnDropDownOpened" />
+                  ItemsSource="{Binding MicFriendlyNames, Mode=OneWay}"
+                  DropDownOpened="DeviceCombobox_OnDropDownOpened" SelectionChanged="DeviceCombobox_OnSelectionChanged" />
         
         <TextBlock Grid.Column="0" Grid.Row="2" Text="Mute shortcut" />
-        <Button Grid.Column="0" Grid.ColumnSpan="2"  Grid.Row="2"
-                MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch" />
+        <Button Name="ShortcutButton" Grid.Column="0" Grid.ColumnSpan="2"  Grid.Row="2"
+                MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                Content="{Binding Shortcut, Mode=OneWay}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                LostFocus="EditShortcut_OnLostFocus"
+                Click="EditShortcut_OnClick"
+                KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
         
         <TextBlock Grid.Column="0" Grid.Row="4" Text="Run on startup" />
         <ToggleSwitch Grid.Column="1" Grid.Row="4" HorizontalAlignment="Right" />
