@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
+using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using MicMuter.Audio;
@@ -16,9 +18,21 @@ public class App : Application
 {
     private readonly IServiceProvider _services;
 
+    private Window _mainWindow = null!;
+
     public App()
     {
         _services = ConfigureServices();
+    }
+    
+    private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        _mainWindow.Show();
+    }
+    
+    private void ExitMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
     }
     
     private IServiceProvider ConfigureServices()
@@ -26,7 +40,8 @@ public class App : Application
         ServiceCollection services = new();
 
         services.AddTransient(typeof(LazyService<>));
-        
+
+        services.AddSingleton<SettingsSerializer>();
         services.AddSingleton<Settings>();
         services.AddSingleton<MicMuterService>();
         
@@ -49,14 +64,28 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
             // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
             DisableAvaloniaDataAnnotationValidation();
+            
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            try
+            {
+                await _services.GetRequiredService<SettingsSerializer>().Load();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"\nUnhandled exception while loading settings: {e.Message}\n");
+                throw;
+            }
+            
             desktop.MainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
+            _mainWindow = desktop.MainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();

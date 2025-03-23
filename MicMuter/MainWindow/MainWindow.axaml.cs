@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -13,13 +14,25 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel _vm;
     private bool _isEditingShortcut = false;
     private bool _loaded = false;
+
+    public MainWindow()
+    {
+        throw new UnreachableException();
+    }
     
     public MainWindow(MainWindowViewModel vm)
     {
         _vm = vm;
         DataContext = vm;
+        Closing += OnClosing;
         Loaded += OnLoaded;
         InitializeComponent();
+    }
+
+    private void OnClosing(object? sender, WindowClosingEventArgs e)
+    {
+        e.Cancel = true;
+        Hide();
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

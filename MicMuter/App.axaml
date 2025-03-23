@@ -20,9 +20,9 @@
                       ToolTipText="MicMuter">
                 <TrayIcon.Menu>
                     <NativeMenu>
-                        <NativeMenuItem Header="Settings" />
+                        <NativeMenuItem Header="Settings" Click="SettingsMenuItem_OnClick" />
                         <NativeMenuItemSeparator />
-                        <NativeMenuItem Header="Exit" />
+                        <NativeMenuItem Header="Exit" Click="ExitMenuItem_OnClick" />
                     </NativeMenu>
                 </TrayIcon.Menu>
             </TrayIcon>

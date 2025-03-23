@@ -24,18 +24,20 @@ internal sealed class MicMuterService : IDisposable
         get => _mic;
         set
         {
+            if (_mic == value) return;
+
             if (_mic is null)
             {
-                if (value is null) return;
-                
-                _mic = value;
+                _mic = value!;
                 _mic.MuteStatusChanged += MicOnMuteStatusChanged;
+                MuteStatusChanged?.Invoke(this, _mic.IsMuted);
                 return;
             }
-
+            
             _mic.MuteStatusChanged -= MicOnMuteStatusChanged;
             _mic = value;
             if (_mic is not null) _mic.MuteStatusChanged += MicOnMuteStatusChanged;
+            MuteStatusChanged?.Invoke(this, _mic?.IsMuted == true);
         }
     }
 

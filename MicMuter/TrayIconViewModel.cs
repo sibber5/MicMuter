@@ -17,8 +17,8 @@ internal sealed partial class TrayIconViewModel : ObservableObject
     
     public TrayIconViewModel(MicMuterService micMuterService)
     {
-        _currentIcon = _unmutedIcon;
         _micMuterService = micMuterService;
+        _currentIcon = _micMuterService.IsMicMuted ? _mutedIcon : _unmutedIcon;
         _micMuterService.MuteStatusChanged += MicMuterService_OnMuteStatusChanged;
     }
 
