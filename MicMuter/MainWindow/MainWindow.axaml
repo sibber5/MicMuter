@@ -9,7 +9,7 @@
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
         Width="370" Height="150"
-        MinWidth="370" MinHeight="150">
+        MinWidth="295" MinHeight="150">
 
     <Grid ColumnDefinitions="*,Auto"
           RowDefinitions="32,5,32,5,32"
@@ -23,10 +23,11 @@
         
         <TextBlock Grid.Column="0" Grid.Row="0" Text="Device" />
         <ComboBox Name="DeviceCombobox" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
-                  MinWidth="150" HorizontalAlignment="Right"
+                  MinWidth="150" HorizontalAlignment="Right" Margin="55, 0, 0, 0"
                   SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
                   ItemsSource="{Binding Mics, Mode=OneWay}"
-                  DropDownOpened="DeviceCombobox_OnDropDownOpened" SelectionChanged="DeviceCombobox_OnSelectionChanged">
+                  ToolTip.Tip="{Binding SelectedDevice.FriendlyName, FallbackValue=''}"
+                  DropDownOpened="DeviceCombobox_OnDropDownOpened">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding FriendlyName, Mode=OneTime}" />

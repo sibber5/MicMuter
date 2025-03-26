@@ -4,10 +4,12 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using MicMuter.Audio;
+using MicMuter.Audio.Windows;
 using MicMuter.Hotkeys;
 using MicMuter.MainWindow;
 using Microsoft.Extensions.DependencyInjection;
@@ -64,7 +66,7 @@ public class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override async void OnFrameworkInitializationCompleted()
+    public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -74,23 +76,17 @@ public class App : Application
             
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            try
+            _ = _services.GetRequiredService<SettingsSerializer>().Load().ContinueWith(t =>
             {
-                await _services.GetRequiredService<SettingsSerializer>().Load();
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"\nUnhandled exception while loading settings: {e.Message}\n");
-                throw;
-            }
-            
-            desktop.MainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
-            _mainWindow = desktop.MainWindow;
+                Debug.WriteLine($"\nUnhandled exception while loading settings: {t.Exception?.Message}\n");
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            _mainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
     }
-
+    
     private void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove

@@ -1,9 +1,9 @@
 ﻿using System;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
-using static MicMuter.Audio.WindowsMicDeviceManager;
+using static MicMuter.Audio.Windows.WindowsMicDeviceManager;
 
-namespace MicMuter.Audio;
+namespace MicMuter.Audio.Windows;
 
 internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
 {
@@ -12,34 +12,47 @@ internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
 
     public string Id => "467fc274-0b3f-4245-99c5-6a3dacc01d7f";
     public string FriendlyName => $"Default ({Device.FriendlyName})";
-    public bool IsMuted => Device.IsMuted;
-    public void ToggleMute() => Device.ToggleMute();
+    public bool IsMuted => Device.AudioEndpointVolume.Mute;
+    public void ToggleMute() => Device.AudioEndpointVolume.Mute = !Device.AudioEndpointVolume.Mute;
 
     public event EventHandler<bool>? MuteStatusChanged;
 
-    private IMicDevice _device;
-    private IMicDevice Device
+    private MMDevice? _device;
+    private MMDevice Device
     {
-        get => _device;
+        get => _device!;
         set
         {
             if (_device == value) return;
 
-            // TODO: this causes some fucking com exception, figure out this fucking shit later i dont fucking know
-            _device.MuteStatusChanged -= Device_OnMuteStatusChanged;
-            value.MuteStatusChanged += Device_OnMuteStatusChanged;
+            if (_device is not null)
+            {
+                _device.AudioEndpointVolume.OnVolumeNotification -= OnVolumeNotification;
+                Helpers.DebugWriteLine($"Unregistered volume notification for {_device.FriendlyName}");
+            }
+            
+            value.AudioEndpointVolume.OnVolumeNotification += OnVolumeNotification;
+            Helpers.DebugWriteLine($"Registered volume notification for {value.FriendlyName}");
+            OnMuteStatusChanged(value.AudioEndpointVolume.Mute);
+            
             _device = value;
         }
     }
-    
+
     private WasapiDefaultMicDeviceRef()
     {
-        _device = ToMicDevice(DeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications));
-        _device.MuteStatusChanged += Device_OnMuteStatusChanged;
+        Device = DeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
         DeviceEnumerator.RegisterEndpointNotificationCallback(new MMNotificationClientImpl(this));
     }
 
-    private void Device_OnMuteStatusChanged(object? sender, bool e) => MuteStatusChanged?.Invoke(sender, e);
+    private bool? _prevMuted = null;
+    private void OnVolumeNotification(AudioVolumeNotificationData data)
+    {
+        if (_prevMuted is null || _prevMuted != data.Muted) OnMuteStatusChanged(data.Muted);
+        _prevMuted = data.Muted;
+    }
+
+    private void OnMuteStatusChanged(bool isMuted) => MuteStatusChanged?.Invoke(this, isMuted);
 
     private sealed class MMNotificationClientImpl(WasapiDefaultMicDeviceRef defaultDeviceRef) : IMMNotificationClient
     {
@@ -47,7 +60,7 @@ internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
         {
             if (flow == DataFlow.Capture && role == Role.Communications)
             {
-                defaultDeviceRef.Device = ToMicDevice(DeviceEnumerator.GetDevice(defaultDeviceId));
+                defaultDeviceRef.Device = DeviceEnumerator.GetDevice(defaultDeviceId);
             }
         }
         

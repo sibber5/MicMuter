@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using Avalonia.Platform;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
@@ -84,7 +83,7 @@ internal sealed class MicMuterService : IDisposable
 
         _hotkey = _hotkeyFactory.Register(newShortcut, _getMainWindowHandle.Value()!.Handle);
         _hotkey.Pressed += OnHotkeyPressed;
-        Debug.WriteLine($"[{nameof(MicMuterService)}] Registered new hotkey: {_hotkey.Shortcut}");
+        Helpers.DebugWriteLine($"Registered new hotkey: {_hotkey.Shortcut}");
     }
 
     public void Dispose() => _hotkey?.Dispose();

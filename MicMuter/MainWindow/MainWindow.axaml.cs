@@ -13,7 +13,6 @@ public partial class MainWindow : Window
 {
     private readonly MainWindowViewModel _vm;
     private bool _isEditingShortcut = false;
-    private bool _loaded = false;
 
     public MainWindow()
     {
@@ -27,10 +26,12 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         Loaded += OnLoaded;
         InitializeComponent();
+        Helpers.DebugWriteLine("Initialized.");
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
     {
+        EndEditShortcut();
         e.Cancel = true;
         Hide();
     }
@@ -38,7 +39,6 @@ public partial class MainWindow : Window
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
         ResizeWindowToFitDeviceCombobox();
-        _loaded = true;
     }
 
     private void DeviceCombobox_OnDropDownOpened(object? sender, EventArgs e)
@@ -46,12 +46,6 @@ public partial class MainWindow : Window
         _vm.RefreshDeviceList();
     }
     
-    private void DeviceCombobox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
-    {
-        if (!_loaded) return;
-        ResizeWindowToFitDeviceCombobox();
-    }
-
     private void ResizeWindowToFitDeviceCombobox()
     {
         if (DeviceCombobox.SelectedIndex == -1 || string.IsNullOrEmpty(((IMicDevice?)DeviceCombobox.SelectedItem)?.FriendlyName)) return;

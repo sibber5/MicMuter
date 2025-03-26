@@ -4,21 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using NAudio.CoreAudioApi;
 
-namespace MicMuter.Audio;
+namespace MicMuter.Audio.Windows;
 
 public class WindowsMicDeviceManager : IMicDeviceManager
 {
+    internal static readonly MMDeviceEnumerator DeviceEnumerator = new();
+    
     private static readonly ConcurrentDictionary<string, IMicDevice> _deviceMap = new();
-    internal static IMicDevice ToMicDevice(MMDevice mmDevice)
-        // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        // WasapiDefaultMicDeviceRef.Instance could be null in this case because both this method and WasapiDefaultMicDeviceRef.Instance are static,
-        // so it could be, and indeed is (in the WasapiDefaultMicDeviceRef ctor), called before the static instance is instantiated.
-        => WasapiDefaultMicDeviceRef.Instance?.Id.Equals(mmDevice.ID, StringComparison.Ordinal) == true
+    private static IMicDevice ToMicDevice(MMDevice mmDevice)
+        => WasapiDefaultMicDeviceRef.Instance.Id.Equals(mmDevice.ID, StringComparison.Ordinal)
             ? WasapiDefaultMicDeviceRef.Instance
             : _deviceMap.GetOrAdd(mmDevice.ID, static (_, d) => new WasapiMicDevice(d), mmDevice);
     
-    internal static readonly MMDeviceEnumerator DeviceEnumerator = new();
-
     private MMDeviceCollection? _lastDeviceCol;
     private IReadOnlyList<IMicDevice>? _lastIMicDeviceList;
     public IReadOnlyList<IMicDevice> GetMicDevices()
@@ -38,5 +35,5 @@ public class WindowsMicDeviceManager : IMicDeviceManager
     public IMicDevice GetMicDeviceById(string id)
         => WasapiDefaultMicDeviceRef.Instance.Id.Equals(id, StringComparison.Ordinal)
             ? WasapiDefaultMicDeviceRef.Instance
-            : ToMicDevice(DeviceEnumerator.GetDevice(id));
+            : _deviceMap.GetOrAdd(id, static id => new WasapiMicDevice(DeviceEnumerator.GetDevice(id)));
 }

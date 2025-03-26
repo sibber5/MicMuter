@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,13 +22,14 @@ internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceMa
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"\n[{nameof(SettingsSerializer)}] Error serializing settings, Exception: {ex}\n");
+            Helpers.DebugWriteLine($"\nError serializing settings, Exception: {ex}\n");
             throw;
         }
     }
 
     private async Task Serialize()
     {
+        Helpers.DebugWriteLine("Saving settings...");
         Directory.CreateDirectory(SaveFileDir);
         SettingsDto dto = new(settings.MicDevice?.Id, settings.MuteShortcut);
         await using FileStream createStream = File.Create(SaveFilePath);
@@ -47,7 +47,7 @@ internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceMa
         }
         catch (FileNotFoundException)
         {
-            Debug.WriteLine($"[{nameof(SettingsSerializer)}] Settings file not found.");
+            Helpers.DebugWriteLine("Settings file not found.");
         }
         
         settings.MuteShortcut = dto.Shortcut;
@@ -55,7 +55,7 @@ internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceMa
         
         settings.PropertyChanged += Settings_OnPropertyChanged;
         
-        Debug.WriteLine($"[{nameof(SettingsSerializer)}] Successfully loaded settings.");
+        Helpers.DebugWriteLine("Successfully loaded settings.");
     }
 
     private readonly record struct SettingsDto(string? MicId, Shortcut Shortcut);
