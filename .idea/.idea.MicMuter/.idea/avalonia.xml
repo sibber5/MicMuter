@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AvaloniaProject">
+    <option name="projectPerEditor">
+      <map>
+        <entry key="MicMuter/Controls/Setting.axaml" value="MicMuter/MicMuter.csproj" />
+        <entry key="MicMuter/MainWindow/MainWindow.axaml" value="MicMuter/MicMuter.csproj" />
+      </map>
+    </option>
+  </component>
+</project>

@@ -31,12 +31,12 @@ internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceMa
     {
         Helpers.DebugWriteLine("Saving settings...");
         Directory.CreateDirectory(SaveFileDir);
-        SettingsDto dto = new(settings.MicDevice?.Id, settings.MuteShortcut);
+        SettingsDto dto = new(settings.MicDevice?.Id, settings.MuteShortcut, settings.RunOnStartup, settings.StartMinimized);
         await using FileStream createStream = File.Create(SaveFilePath);
         await JsonSerializer.SerializeAsync(createStream, dto, SourceGenerationContext.Default.SettingsDto);
     }
 
-    public async Task Load()
+    public async Task<Settings> Load()
     {
         SettingsDto dto = default;
         try
@@ -52,14 +52,18 @@ internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceMa
         
         settings.MuteShortcut = dto.Shortcut;
         settings.MicDevice = dto.MicId is not null ? micDeviceManager.GetMicDeviceById(dto.MicId) : micDeviceManager.GetDefaultMicDevice();
+        settings.RunOnStartup = dto.RunOnStartup;
+        settings.StartMinimized = dto.StartMinimized;
         
         settings.PropertyChanged += Settings_OnPropertyChanged;
         
         Helpers.DebugWriteLine("Successfully loaded settings.");
+
+        return settings;
     }
-
-    private readonly record struct SettingsDto(string? MicId, Shortcut Shortcut);
-
+    
+    private readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool RunOnStartup, bool StartMinimized);
+    
     [JsonSourceGenerationOptions(WriteIndented = true)]
     // [JsonConverter(typeof(JsonStringEnumConverter))]
     [JsonSerializable(typeof(SettingsDto))]

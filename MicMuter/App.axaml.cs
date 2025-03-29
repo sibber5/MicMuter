@@ -4,10 +4,10 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using MicMuter.Audio;
 using MicMuter.Audio.Windows;
 using MicMuter.Hotkeys;
@@ -75,11 +75,20 @@ public class App : Application
             DisableAvaloniaDataAnnotationValidation();
             
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-            _ = _services.GetRequiredService<SettingsSerializer>().Load().ContinueWith(t =>
+            
+            _ = _services.GetRequiredService<SettingsSerializer>().Load().ContinueWith((t, args) =>
             {
-                Debug.WriteLine($"\nUnhandled exception while loading settings: {t.Exception?.Message}\n");
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                if (t.IsCompletedSuccessfully)
+                {
+                    var (services, dispatcher) = ((IServiceProvider, Dispatcher))args!;
+                    if (!t.Result.StartMinimized) dispatcher.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+                }
+                else
+                {
+                    Debug.WriteLine("Failed to load settings.");
+                    if (t.IsFaulted) Debug.WriteLine($"\nUnhandled exception while loading settings: {t.Exception?.Message}\n");
+                }
+            }, (_services, Dispatcher.UIThread));
 
             _mainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
         }

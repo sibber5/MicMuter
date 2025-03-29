@@ -92,16 +92,16 @@ public partial class MainWindow : Window
                 return;
             
             case Key.Back or Key.Delete:
-                _vm.Shortcut = default;
+                _vm.Settings.MuteShortcut = default;
                 return;
             
             case Key.LeftAlt or Key.LeftCtrl or Key.LeftShift or Key.RightAlt or Key.RightCtrl or Key.RightShift
                 or Key.LWin or Key.RWin:
-                _vm.Shortcut = new(Key.None, e.KeyModifiers);
+                _vm.Settings.MuteShortcut = new(Key.None, e.KeyModifiers);
                 return;
             
             default:
-                _vm.Shortcut = new(e.Key, e.KeyModifiers);
+                _vm.Settings.MuteShortcut = new(e.Key, e.KeyModifiers);
                 EndEditShortcut();
                 break;
         }
@@ -119,7 +119,7 @@ public partial class MainWindow : Window
             key = Key.None;
         }
         
-        _vm.Shortcut = new(key, e.KeyModifiers);
+        _vm.Settings.MuteShortcut = new(key, e.KeyModifiers);
     }
 
     private void StartEditShortcut()

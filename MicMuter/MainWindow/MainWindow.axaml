@@ -3,50 +3,58 @@
         xmlns:vm="using:MicMuter.MainWindow"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:c="using:MicMuter.Controls"
         mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="270"
         x:Class="MicMuter.MainWindow.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
-        Width="370" Height="150"
-        MinWidth="295" MinHeight="150">
+        Width="370" Height="177"
+        MinWidth="301" MinHeight="177">
 
-    <Grid ColumnDefinitions="*,Auto"
-          RowDefinitions="32,5,32,5,32"
-          Margin="20"
-          Name="SettingsGrid">
-        <Grid.Styles>
-            <Style Selector="Grid > TextBlock">
-                <Setter Property="VerticalAlignment" Value="Center" />
-            </Style>
-        </Grid.Styles>
+    <StackPanel Margin="20,15,20,20">
+
+        <c:Setting Text="Device">
+            <c:Setting.Content>
+                <ComboBox Name="DeviceCombobox"
+                          MinWidth="150" HorizontalAlignment="Right"
+                          SelectedItem="{Binding Settings.MicDevice, Mode=TwoWay}"
+                          ItemsSource="{Binding Mics, Mode=OneWay}"
+                          ToolTip.Tip="{Binding Settings.MicDevice.FriendlyName, TargetNullValue='', FallbackValue=''}"
+                          DropDownOpened="DeviceCombobox_OnDropDownOpened">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FriendlyName, Mode=OneTime}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </c:Setting.Content>
+        </c:Setting>
         
-        <TextBlock Grid.Column="0" Grid.Row="0" Text="Device" />
-        <ComboBox Name="DeviceCombobox" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"
-                  MinWidth="150" HorizontalAlignment="Right" Margin="55, 0, 0, 0"
-                  SelectedItem="{Binding SelectedDevice, Mode=TwoWay}"
-                  ItemsSource="{Binding Mics, Mode=OneWay}"
-                  ToolTip.Tip="{Binding SelectedDevice.FriendlyName, FallbackValue=''}"
-                  DropDownOpened="DeviceCombobox_OnDropDownOpened">
-            <ComboBox.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding FriendlyName, Mode=OneTime}" />
-                </DataTemplate>
-            </ComboBox.ItemTemplate>
-        </ComboBox>
+        <c:Setting Text="Mute shortcut">
+            <c:Setting.Content>
+                <Button Name="ShortcutButton"
+                        MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                        Content="{Binding Settings.MuteShortcut, Mode=OneWay}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        LostFocus="EditShortcut_OnLostFocus"
+                        Click="EditShortcut_OnClick"
+                        KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
+            </c:Setting.Content>
+        </c:Setting>
         
-        <TextBlock Grid.Column="0" Grid.Row="2" Text="Mute shortcut" />
-        <Button Name="ShortcutButton" Grid.Column="0" Grid.ColumnSpan="2"  Grid.Row="2"
-                MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch"
-                Content="{Binding Shortcut, Mode=OneWay}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                LostFocus="EditShortcut_OnLostFocus"
-                Click="EditShortcut_OnClick"
-                KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
+        <c:Setting Text="Run on startup">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
+            </c:Setting.Content>
+        </c:Setting>
         
-        <TextBlock Grid.Column="0" Grid.Row="4" Text="Run on startup" />
-        <ToggleSwitch Grid.Column="1" Grid.Row="4" HorizontalAlignment="Right" />
+        <c:Setting Text="Start minimized to tray">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.StartMinimized, Mode=TwoWay}" />
+            </c:Setting.Content>
+        </c:Setting>
         
-    </Grid>
+    </StackPanel>
     
 
 </Window>

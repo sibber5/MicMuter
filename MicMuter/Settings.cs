@@ -11,4 +11,10 @@ public sealed partial class Settings : ObservableObject
     
     [ObservableProperty]
     private Shortcut _muteShortcut;
+    
+    [ObservableProperty]
+    private bool _runOnStartup;
+    
+    [ObservableProperty]
+    private bool _startMinimized;
 }

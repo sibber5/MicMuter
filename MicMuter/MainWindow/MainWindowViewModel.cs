@@ -12,49 +12,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private IReadOnlyList<IMicDevice> _mics;
 
-    [ObservableProperty]
-    private IMicDevice? _selectedDevice;
-    partial void OnSelectedDeviceChanged(IMicDevice? value)
-    {
-        if (!_updatingFromSettings) _settings.MicDevice = value;
-    }
-
-    [ObservableProperty]
-    private Shortcut _shortcut;
-    partial void OnShortcutChanged(Shortcut value)
-    {
-        if (!_updatingFromSettings) _settings.MuteShortcut = value;
-    }
-
-    private readonly Settings _settings;
+    public Settings Settings { get; }
     private readonly IMicDeviceManager _micDeviceManager;
 
-    private bool _updatingFromSettings;
-    
     public MainWindowViewModel(IMicDeviceManager micDeviceManager, Settings settings)
     {
         _micDeviceManager = micDeviceManager;
         
-        _settings = settings;
-        _settings.PropertyChanged += Settings_OnPropertyChanged;
+        Settings = settings;
         
         _mics = _micDeviceManager.GetMicDevices();
-        _selectedDevice = _settings.MicDevice;
-        _shortcut = _settings.MuteShortcut;
-    }
-
-    private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        _updatingFromSettings = true;
-        if (nameof(Settings.MuteShortcut).Equals(e.PropertyName, StringComparison.Ordinal))
-        {
-            Shortcut = _settings.MuteShortcut;
-        }
-        else if (nameof(Settings.MicDevice).Equals(e.PropertyName, StringComparison.Ordinal))
-        {
-            SelectedDevice = _settings.MicDevice;
-        }
-        _updatingFromSettings = false;
     }
 
     public void RefreshDeviceList()
