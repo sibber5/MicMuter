@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using MicMuter.AppSettings;
 using MicMuter.Audio;
-using MicMuter.Hotkeys;
 
 namespace MicMuter.MainWindow;
 

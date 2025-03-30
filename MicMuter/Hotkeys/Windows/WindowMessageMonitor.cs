@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using MicMuter.Native.Win32;
 
-namespace MicMuter.Hotkeys;
+namespace MicMuter.Hotkeys.Windows;
 
 // From https://github.com/dotMorten/WinUIEx by dotMorten
 // MIT License

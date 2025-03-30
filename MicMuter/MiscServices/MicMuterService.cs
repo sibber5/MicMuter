@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using Avalonia.Platform;
+using MicMuter.AppSettings;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
 
-namespace MicMuter;
+namespace MicMuter.MiscServices;
 
 internal sealed class MicMuterService : IDisposable
 {

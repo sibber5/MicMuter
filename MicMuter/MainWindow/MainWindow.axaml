@@ -30,7 +30,7 @@
                 </ComboBox>
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Mute shortcut">
             <c:Setting.Content>
                 <Button Name="ShortcutButton"
@@ -41,20 +41,19 @@
                         KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Run on startup">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Start minimized to tray">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.StartMinimized, Mode=TwoWay}" />
             </c:Setting.Content>
         </c:Setting>
-        
+
     </StackPanel>
-    
 
 </Window>

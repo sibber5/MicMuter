@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia.Input;
 
-namespace MicMuter.Hotkeys;
+namespace MicMuter.Hotkeys.Windows;
 
 internal sealed class WindowsGlobalHotkeyFactory : IGlobalHotkeyFactory
 {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
 
-namespace MicMuter;
+namespace MicMuter.AppSettings;
 
 internal sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager)
 {

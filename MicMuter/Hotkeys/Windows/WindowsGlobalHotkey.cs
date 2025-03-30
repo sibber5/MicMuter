@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace MicMuter.Hotkeys;
+namespace MicMuter.Hotkeys.Windows;
 
 internal sealed class WindowsGlobalHotkey : IGlobalHotkey
 {

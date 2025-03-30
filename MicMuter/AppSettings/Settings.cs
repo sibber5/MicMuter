@@ -2,7 +2,7 @@
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
 
-namespace MicMuter;
+namespace MicMuter.AppSettings;
 
 public sealed partial class Settings : ObservableObject
 {

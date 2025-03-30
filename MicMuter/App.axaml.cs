@@ -12,6 +12,9 @@ using MicMuter.Audio;
 using MicMuter.Audio.Windows;
 using MicMuter.Hotkeys;
 using MicMuter.MainWindow;
+using MicMuter.AppSettings;
+using MicMuter.Hotkeys.Windows;
+using MicMuter.MiscServices;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MicMuter;

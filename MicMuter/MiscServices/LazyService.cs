@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MicMuter;
+namespace MicMuter.MiscServices;
 
 public sealed class LazyService<T>(IServiceProvider provider) where T : notnull
 {
