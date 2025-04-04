@@ -6,7 +6,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
-using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -29,6 +29,8 @@ namespace MicMuter;
 
 public class App : Application
 {
+    public static string ExePath { get; } = Path.Join(AppContext.BaseDirectory, $"{nameof(MicMuter)}.exe");
+    
     private readonly IServiceProvider _services;
 
     private Window _mainWindow = null!;
@@ -72,6 +74,11 @@ public class App : Application
         
         return services.BuildServiceProvider();
     }
+
+    public static void ThrowOnMainThread<T>(T ex) where T : Exception
+    {
+        Dispatcher.UIThread.Post(() => throw ex);
+    }
     
     public override void Initialize()
     {
@@ -91,17 +98,24 @@ public class App : Application
             
             _ = _services.GetRequiredService<SettingsSerializer>().Load().ContinueWith((t, args) =>
             {
+                var (services, dispatcher, appLifetime) = ((IServiceProvider, Dispatcher, IClassicDesktopStyleApplicationLifetime))args!;
                 if (t.IsCompletedSuccessfully)
                 {
-                    var (services, dispatcher) = ((IServiceProvider, Dispatcher))args!;
                     if (!t.Result.StartMinimized) dispatcher.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
                 }
                 else
                 {
-                    Debug.WriteLine("Failed to load settings.");
-                    if (t.IsFaulted) Debug.WriteLine($"\nUnhandled exception while loading settings: {t.Exception?.Message}\n");
+                    Helpers.DebugWriteLine("Failed to load settings.");
+                    if (t.IsFaulted)
+                    {
+                        dispatcher.Post(() =>
+                        {
+                            Program.MessageBoxError(t.Exception.Message, "Unhandled exception while loading settings");
+                            appLifetime.Shutdown();
+                        });
+                    }
                 }
-            }, (_services, Dispatcher.UIThread));
+            }, (_services, Dispatcher.UIThread, (IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!));
 
             _services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
             
@@ -122,9 +136,16 @@ public class App : Application
             "Restart",
             "Cancel",
             acceptIcon: (IImage)acceptIcon!);
-        
-        var result = await v.ShowDialog<DialogResult>(_mainWindow);
-        if (result == DialogResult.Accept) await RestartElevated();
+
+        try
+        {
+            var result = await v.ShowDialog<DialogResult>(_mainWindow);
+            if (result == DialogResult.Accept) await RestartElevated();
+        }
+        catch (Exception ex)
+        {
+            ThrowOnMainThread(ex);
+        }
     }
 
     private async ValueTask RestartElevated()
@@ -139,7 +160,7 @@ public class App : Application
         
         ProcessStartInfo info = new()
         {
-            FileName = Path.ChangeExtension(Assembly.GetEntryAssembly()!.Location, ".exe"),
+            FileName = ExePath,
             Verb = "runas",
             UseShellExecute = true,
         };
@@ -162,6 +183,7 @@ public class App : Application
     
     private void DisableAvaloniaDataAnnotationValidation()
     {
+#pragma warning disable IL2026
         // Get an array of plugins to remove
         var dataValidationPluginsToRemove =
             BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
@@ -171,5 +193,6 @@ public class App : Application
         {
             BindingPlugins.DataValidators.Remove(plugin);
         }
+#pragma warning restore IL2026
     }
 }

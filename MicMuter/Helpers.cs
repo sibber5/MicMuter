@@ -10,7 +10,9 @@ internal static class Helpers
     public static void DebugWriteLine(string message)
     {
         StackFrame frame = new(1);
+#pragma warning disable IL2026
         string typeName = frame.GetMethod()?.DeclaringType?.Name ?? "";
+#pragma warning restore IL2026
         Debug.WriteLine($"[{typeName}] {message}");
     }
     

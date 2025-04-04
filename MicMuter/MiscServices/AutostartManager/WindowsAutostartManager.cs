@@ -10,8 +10,6 @@ namespace MicMuter.MiscServices.AutostartManager;
 
 internal sealed class WindowsAutostartManager : IAutostartManager
 {
-    private static string ExePath => Path.ChangeExtension(Assembly.GetEntryAssembly()!.Location, ".exe");
-    
     public void SetAutostart(bool value, bool elevated)
     {
         if (elevated) SetStartupAsAdminTask(value);
@@ -25,7 +23,7 @@ internal sealed class WindowsAutostartManager : IAutostartManager
 
         if (value)
         {
-            key.SetValue(nameof(MicMuter), ExePath);
+            key.SetValue(nameof(MicMuter), App.ExePath);
             Helpers.DebugWriteLine("Created startup registry key");
             return;
         }
@@ -58,7 +56,7 @@ internal sealed class WindowsAutostartManager : IAutostartManager
                 taskDef.RegistrationInfo.Description = "Automatically runs MicMuter with administrator privileges on startup.";
                 taskDef.Principal.RunLevel = TaskRunLevel.Highest;
                 taskDef.Triggers.Add(new LogonTrigger { UserId = Environment.UserName });
-                taskDef.Actions.Add(ExePath);
+                taskDef.Actions.Add(App.ExePath);
                 task = TaskService.Instance.RootFolder.RegisterTaskDefinition(taskName, taskDef);
             }
 
