@@ -11,14 +11,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private IReadOnlyList<IMicDevice> _mics;
 
     public Settings Settings { get; }
+    
     private readonly IMicDeviceManager _micDeviceManager;
 
     public MainWindowViewModel(IMicDeviceManager micDeviceManager, Settings settings)
     {
         _micDeviceManager = micDeviceManager;
-        
+
         Settings = settings;
-        
+
         _mics = _micDeviceManager.GetMicDevices();
     }
 

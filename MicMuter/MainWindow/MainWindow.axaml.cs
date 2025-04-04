@@ -50,25 +50,12 @@ public partial class MainWindow : Window
     {
         if (DeviceCombobox.SelectedIndex == -1 || string.IsNullOrEmpty(((IMicDevice?)DeviceCombobox.SelectedItem)?.FriendlyName)) return;
         
-        double comboboxWidth = 44 + GetRenderedTextWidth(((IMicDevice)DeviceCombobox.SelectedItem!).FriendlyName, DeviceCombobox.FontFamily, DeviceCombobox.FontSize);
+        double comboboxWidth = 44 + Helpers.GetRenderedTextDimensions(((IMicDevice)DeviceCombobox.SelectedItem!).FriendlyName, DeviceCombobox.FontFamily, DeviceCombobox.FontSize).Width;
         var diff = this.Bounds.Width - 110 - comboboxWidth;
         if (diff < 0)
         {
             this.Width += -diff;
         }
-    }
-    
-    private static double GetRenderedTextWidth(string text, FontFamily fontFamily, double fontSize)
-    {
-        var typeface = new Typeface(fontFamily);
-        FormattedText formatted = new(
-            text,
-            Thread.CurrentThread.CurrentUICulture,
-            FlowDirection.LeftToRight,
-            typeface,
-            fontSize,
-            null);
-        return formatted.Width;
     }
 
     private void EditShortcut_OnLostFocus(object? sender, RoutedEventArgs e)

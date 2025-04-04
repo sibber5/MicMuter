@@ -3,7 +3,10 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="MicMuter/App.axaml" value="MicMuter/MicMuter.csproj" />
         <entry key="MicMuter/Controls/Setting.axaml" value="MicMuter/MicMuter.csproj" />
+        <entry key="MicMuter/Dialogs/DialogWindow.axaml" value="MicMuter/MicMuter.csproj" />
+        <entry key="MicMuter/Icons.axaml" value="MicMuter/MicMuter.csproj" />
         <entry key="MicMuter/MainWindow/MainWindow.axaml" value="MicMuter/MicMuter.csproj" />
       </map>
     </option>

@@ -9,11 +9,11 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
-        Width="370" Height="177"
-        MinWidth="301" MinHeight="177">
+        Width="370" Height="197"
+        MinWidth="301" MinHeight="197">
 
-    <StackPanel Margin="20,15,20,20">
-
+    <StackPanel Margin="20,20,20,20" Spacing="10">
+        
         <c:Setting Text="Device">
             <c:Setting.Content>
                 <ComboBox Name="DeviceCombobox"
@@ -45,6 +45,14 @@
         <c:Setting Text="Run on startup">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
+            </c:Setting.Content>
+        </c:Setting>
+        
+        <c:Setting Text="Start as admin 🛈"
+                   ToolTip.Tip="Allows the shortcut to work in cases where it otherwise wouldn't, e.g. in some fullscreen applications"
+                   Margin="15,-5,0,0">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.StartElevated, Mode=TwoWay}"/>
             </c:Setting.Content>
         </c:Setting>
 

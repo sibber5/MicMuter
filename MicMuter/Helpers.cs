@@ -1,5 +1,6 @@
-﻿#if DEBUG
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System.Threading;
+using Avalonia.Media;
 
 namespace MicMuter;
 
@@ -12,5 +13,23 @@ internal static class Helpers
         string typeName = frame.GetMethod()?.DeclaringType?.Name ?? "";
         Debug.WriteLine($"[{typeName}] {message}");
     }
+    
+    public static (double Width, double Height) GetRenderedTextDimensions(string text, FontFamily fontFamily, double fontSize, double? maxWidth = null)
+    {
+        var typeface = new Typeface(fontFamily);
+        FormattedText formatted = new(
+            text,
+            Thread.CurrentThread.CurrentUICulture,
+            FlowDirection.LeftToRight,
+            typeface,
+            fontSize,
+            null);
+
+        if (maxWidth is not null)
+        {
+            formatted.MaxTextWidth = maxWidth.Value;
+        }
+        
+        return (formatted.Width, formatted.Height);
+    }
 }
-#endif

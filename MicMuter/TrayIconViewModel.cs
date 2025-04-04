@@ -24,7 +24,7 @@ internal sealed partial class TrayIconViewModel : ObservableObject
 
     private void MicMuterService_OnMuteStatusChanged(object? sender, bool isMuted)
     {
-        Helpers.DebugWriteLine("Muted: {isMuted}");
+        Helpers.DebugWriteLine($"Muted: {isMuted}");
         CurrentIcon = isMuted ? _mutedIcon : _unmutedIcon;
     }
 }

@@ -82,8 +82,21 @@ internal sealed class MicMuterService : IDisposable
             return;
         }
 
-        _hotkey = _hotkeyFactory.Register(newShortcut, _getMainWindowHandle.Value()!.Handle);
-        _hotkey.Pressed += OnHotkeyPressed;
+        const int tries = 5;
+        for (int i = 0; i < tries; i++)
+        {
+            try
+            {
+                _hotkey = _hotkeyFactory.Register(newShortcut, _getMainWindowHandle.Value()!.Handle);
+                break;
+            }
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 1409) // Hot key is already registered
+            {
+                if (i == tries - 1) throw;
+            }
+        }
+
+        _hotkey!.Pressed += OnHotkeyPressed;
         Helpers.DebugWriteLine($"Registered new hotkey: {_hotkey.Shortcut}");
     }
 
