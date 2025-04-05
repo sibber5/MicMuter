@@ -39,10 +39,15 @@ internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
         }
     }
 
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    // we need to keep a reference to the com object
+    private readonly MMNotificationClientImpl _notificationClient;
+    
     private WasapiDefaultMicDeviceRef()
     {
         Device = DeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Capture, Role.Communications);
-        DeviceEnumerator.RegisterEndpointNotificationCallback(new MMNotificationClientImpl(this));
+        _notificationClient = new(this);
+        DeviceEnumerator.RegisterEndpointNotificationCallback(_notificationClient);
     }
 
     private bool? _prevMuted = null;
