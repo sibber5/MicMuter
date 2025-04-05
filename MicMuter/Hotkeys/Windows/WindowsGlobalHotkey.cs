@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using MicMuter.NativeMisc.Windows;
 
 namespace MicMuter.Hotkeys.Windows;
 
