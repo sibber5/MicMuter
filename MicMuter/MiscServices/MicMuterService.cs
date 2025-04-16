@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using Avalonia.Input;
 using Avalonia.Platform;
 using MicMuter.AppSettings;
 using MicMuter.Audio;
@@ -46,7 +47,7 @@ internal sealed class MicMuterService : IDisposable
         _hotkeyFactory = hotkeyFactory;
         _getMainWindowHandle = getMainWindowHandle;
         Mic = settings.MicDevice;
-        UpdateMuteShortcut(settings.MuteShortcut);
+        UpdateMuteShortcut(settings.MuteShortcut, settings.IgnoreExtraModifiers);
         settings.PropertyChanged += Settings_OnPropertyChanged;
     }
 
@@ -55,9 +56,10 @@ internal sealed class MicMuterService : IDisposable
     private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         var settings = (Settings)sender!;
-        if (nameof(Settings.MuteShortcut).Equals(e.PropertyName, StringComparison.Ordinal))
+        if (nameof(Settings.MuteShortcut).Equals(e.PropertyName, StringComparison.Ordinal)
+            || nameof(Settings.IgnoreExtraModifiers).Equals(e.PropertyName, StringComparison.Ordinal))
         {
-            UpdateMuteShortcut(settings.MuteShortcut);
+            UpdateMuteShortcut(settings.MuteShortcut, settings.IgnoreExtraModifiers);
         }
         else if (nameof(Settings.MicDevice).Equals(e.PropertyName, StringComparison.Ordinal))
         {
@@ -70,9 +72,9 @@ internal sealed class MicMuterService : IDisposable
         Mic?.ToggleMute();
     }
 
-    private void UpdateMuteShortcut(Shortcut newShortcut)
+    private void UpdateMuteShortcut(Shortcut newShortcut, bool ignoreExtraModifiers)
     {
-        if (_hotkey is not null && _hotkey.Shortcut == newShortcut) return;
+        if (_hotkey is not null && _hotkey.Shortcut == newShortcut && _hotkey.IgnoresExtraModifiers == ignoreExtraModifiers) return;
         
         _hotkey?.Dispose();
 
@@ -87,7 +89,7 @@ internal sealed class MicMuterService : IDisposable
         {
             try
             {
-                _hotkey = _hotkeyFactory.Register(newShortcut, _getMainWindowHandle.Value()!.Handle);
+                _hotkey = _hotkeyFactory.Register(newShortcut, ignoreExtraModifiers, _getMainWindowHandle.Value()!.Handle);
                 break;
             }
             catch (Win32Exception ex) when (ex.NativeErrorCode == 1409) // Hot key is already registered

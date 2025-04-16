@@ -7,4 +7,6 @@ public interface IGlobalHotkey : IDisposable
     event EventHandler Pressed;
     
     Shortcut Shortcut { get; }
+    
+    bool IgnoresExtraModifiers { get; }
 }

@@ -96,33 +96,32 @@ public class App : Application
             
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             
-            _ = _services.GetRequiredService<SettingsSerializer>().Load().ContinueWith((t, args) =>
-            {
-                var (services, dispatcher, appLifetime) = ((IServiceProvider, Dispatcher, IClassicDesktopStyleApplicationLifetime))args!;
-                if (t.IsCompletedSuccessfully)
-                {
-                    if (!t.Result.StartMinimized) dispatcher.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
-                }
-                else
-                {
-                    Helpers.DebugWriteLine("Failed to load settings.");
-                    if (t.IsFaulted)
-                    {
-                        dispatcher.Post(() =>
-                        {
-                            Program.MessageBoxError(t.Exception.Message, "Unhandled exception while loading settings");
-                            appLifetime.Shutdown();
-                        });
-                    }
-                }
-            }, (_services, Dispatcher.UIThread, (IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!));
-
+            LoadSettingsAsync(_services.GetRequiredService<SettingsSerializer>());
+            
             _services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
             
             _mainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private async void LoadSettingsAsync(SettingsSerializer settingsSerializer)
+    {
+        try
+        {
+            await settingsSerializer.Load();
+            Dispatcher.UIThread.Post(_services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+        }
+        catch (Exception ex)
+        {
+            Helpers.DebugWriteLine("Failed to load settings.");
+            Dispatcher.UIThread.Post(() =>
+            {
+                Program.MessageBoxError(ex.Message, "Unhandled exception while loading settings");
+                ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
+            });
+        }
     }
 
     // ReSharper disable once AsyncVoidMethod

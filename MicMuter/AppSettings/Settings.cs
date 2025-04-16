@@ -18,6 +18,9 @@ public sealed partial class Settings(IAutostartManager autostartManager, IElevat
     [ObservableProperty]
     private Shortcut _muteShortcut;
     
+    [ObservableProperty]
+    private bool _ignoreExtraModifiers = true;
+    
     private bool _runOnStartup;
     public bool RunOnStartup
     {
@@ -75,6 +78,16 @@ public sealed partial class Settings(IAutostartManager autostartManager, IElevat
         autostartManager.SetAutostart(true, elevated);
         
         return false;
+    }
+
+    public void Deconstruct(out IMicDevice? micDevice, out Shortcut muteShortcut, out bool ignoreExtraModifiers, out bool runOnStartup, out bool startElevated, out bool startMinimized)
+    {
+        micDevice = MicDevice;
+        muteShortcut = MuteShortcut;
+        ignoreExtraModifiers = IgnoreExtraModifiers;
+        runOnStartup = RunOnStartup;
+        startElevated = StartElevated;
+        startMinimized = StartMinimized;
     }
 }
 
