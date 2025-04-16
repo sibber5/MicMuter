@@ -73,9 +73,14 @@ public partial class MainWindow : Window
         
         switch (e.Key)
         {
-            case Key.Escape:
+            case Key.Return:
                 EndEditShortcut();
                 return;
+            
+            case Key.Escape:
+                _vm.Shortcut = _vm.Settings.MuteShortcut;
+                EndEditShortcut();
+                break;
             
             case Key.Back or Key.Delete:
                 _vm.Shortcut = default;

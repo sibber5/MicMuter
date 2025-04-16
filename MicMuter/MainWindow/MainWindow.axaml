@@ -10,7 +10,7 @@
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
         Width="370" Height="222"
-        MinWidth="301" MinHeight="222">
+        MinWidth="330" MinHeight="222">
 
     <StackPanel Margin="20,20,20,20" Spacing="10">
         
@@ -60,7 +60,8 @@
                    ToolTip.Tip="Allows the shortcut to work in cases where it otherwise wouldn't, e.g. in some fullscreen applications"
                    Margin="15,-5,0,0">
             <c:Setting.Content>
-                <ToggleSwitch IsChecked="{Binding Settings.StartElevated, Mode=TwoWay}"/>
+                <ToggleSwitch IsChecked="{Binding Settings.StartElevated, Mode=TwoWay}"
+                              IsEnabled="{Binding Settings.RunOnStartup}"/>
             </c:Setting.Content>
         </c:Setting>
 

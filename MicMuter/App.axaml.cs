@@ -110,8 +110,8 @@ public class App : Application
     {
         try
         {
-            await settingsSerializer.Load();
-            Dispatcher.UIThread.Post(_services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+            var settings = await settingsSerializer.Load();
+            if (!settings.StartMinimized) Dispatcher.UIThread.Post(_services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
         }
         catch (Exception ex)
         {
