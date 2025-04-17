@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicMuter", "MicMuter\MicMuter.csproj", "{68F6A5CC-254D-48C1-878D-681781AE5CCD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicMuter", "src\MicMuter.csproj", "{68F6A5CC-254D-48C1-878D-681781AE5CCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
