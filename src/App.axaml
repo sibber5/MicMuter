@@ -21,7 +21,8 @@
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="{Binding CurrentIcon, Mode=OneWay}"
-                      ToolTipText="MicMuter">
+                      ToolTipText="MicMuter"
+                      Clicked="SettingsMenuItem_OnClick">
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="Settings" Click="SettingsMenuItem_OnClick" />

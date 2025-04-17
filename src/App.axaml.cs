@@ -43,6 +43,8 @@ public class App : Application
     private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
     {
         _mainWindow.Show();
+        _mainWindow.WindowState = WindowState.Normal;
+        _mainWindow.Activate();
     }
     
     private void ExitMenuItem_OnClick(object? sender, EventArgs e)
