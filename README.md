@@ -1,14 +1,35 @@
-# MicMuter
-MicMuter is a WPF app (windows only) that lets you mute your microphone from anywhere with a keyboard shortcut<br/><br/>
-![alt text](https://github.com/cyberrex5/MicMuter/blob/main/screenshots/scr1.png?raw=true)
+<h1 align="center" style="display: flex; justify-content: center; align-items: center;">
+  <img src="readme_assets/icon.ico?raw=true" height="35">
+  <span style="margin-left: 5px; margin-bottom: 5px;">MicMuter</span>
+</h1>
 
-# Installation
-Download the installer (includes .Net Framework) or the zip file from [the latest release](https://github.com/cyberrex5/MicMuter/releases/latest) and extract it wherever you want.<br/>
-If you have any issues try installing [the latest version of the .NET Framework](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net48-web-installer) or using the installer.
+<div align="center">
 
-# Libraries used
-[NAudio](https://github.com/naudio/NAudio)<br/>
-[TaskScheduler](https://github.com/dahall/taskscheduler)<br/>
-[NotifyIcon](https://github.com/hardcodet/wpf-notifyicon)<br/>
+<a href="https://github.com/sibber5/MicMuter/releases/latest">
+    <img src="https://img.shields.io/github/v/release/sibber5/MicMuter" alt="version" />
+</a>
+<a href="https://github.com/sibber5/MicMuter/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/sibber5/MicMuter?color=lightgrey" alt="license" />
+</a>
+
 <br/>
-For the installer: [WiX Toolset](https://wixtoolset.org/)
+
+Mute your microphone from anywhere with a global keyboard shortcut, and show the mute status in the taskbar/tray
+
+![](readme_assets/screenshot.png?raw=true)
+
+</div>
+
+## Download and Install
+
+### From GitHub
+[In the releases page](https://github.com/sibber5/MicMuter/releases/latest)
+
+## Libraries Used
+- [Avalonia](https://github.com/AvaloniaUI/Avalonia)
+- [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet)
+- [NAudio.Wasapi](https://github.com/naudio/NAudio)
+- [TaskScheduler](https://github.com/dahall/TaskScheduler)
+
+## License
+This (MicMuter) program is licensed under the MIT License ([license](LICENSE))
