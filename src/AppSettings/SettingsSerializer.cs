@@ -12,12 +12,12 @@ namespace MicMuter.AppSettings;
 
 public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager)
 {
+    public static readonly string SaveFileDir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "/MicMuter");
+    public static readonly string SaveFilePath = Path.Join(SaveFileDir, "/UserSettings.json");
+    
     public bool IsLoadingSettings { get; private set; }
     
     private bool _loaded = false;
-    
-    private static readonly string SaveFileDir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "/MicMuter");
-    private static readonly string SaveFilePath = Path.Join(SaveFileDir, "/UserSettings.json");
 
     private async void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {

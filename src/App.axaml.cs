@@ -6,40 +6,23 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Platform;
 using Avalonia.Threading;
-using MicMuter.Audio;
-using MicMuter.Audio.Windows;
-using MicMuter.Hotkeys;
-using MicMuter.MainWindow;
 using MicMuter.AppSettings;
 using MicMuter.Dialogs;
-using MicMuter.Hotkeys.Windows;
-using MicMuter.MiscServices;
-using MicMuter.MiscServices.AutostartManager;
-using MicMuter.MiscServices.ElevatedCheck;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MicMuter;
 
-public class App : Application
+public class App(IServiceProvider services) : Application
 {
     public static string ExePath { get; } = Path.Join(AppContext.BaseDirectory, $"{nameof(MicMuter)}.exe");
-    
-    private readonly IServiceProvider _services;
 
     private Window _mainWindow = null!;
 
-    public App()
-    {
-        _services = ConfigureServicesForWindows();
-    }
-    
     private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
     {
         _mainWindow.Show();
@@ -51,31 +34,6 @@ public class App : Application
     {
         ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
     }
-    
-    private IServiceProvider ConfigureServicesForWindows()
-    {
-        ServiceCollection services = new();
-
-        services.AddTransient(typeof(LazyService<>));
-
-        services.AddSingleton<SettingsSerializer>();
-        services.AddSingleton<Settings>();
-        services.AddSingleton<MicMuterService>();
-        
-        services.AddSingleton<IMicDeviceManager, WindowsMicDeviceManager>();
-        services.AddSingleton<IGlobalHotkeyFactory, WindowsGlobalHotkeyFactory>();
-        services.AddSingleton<IElevatedChecker, WindowsElevatedChecker>();
-        services.AddSingleton<IAutostartManager, WindowsAutostartManager>();
-
-        services.AddSingleton<TrayIconViewModel>();
-        services.AddSingleton<MainWindowViewModel>();
-        
-        services.AddSingleton<MainWindow.MainWindow>();
-
-        services.AddSingleton<Func<IPlatformHandle?>>(provider => provider.GetRequiredService<MainWindow.MainWindow>().TryGetPlatformHandle);
-        
-        return services.BuildServiceProvider();
-    }
 
     public static void ThrowOnMainThread<T>(T ex) where T : Exception
     {
@@ -84,7 +42,7 @@ public class App : Application
     
     public override void Initialize()
     {
-        DataContext = _services.GetRequiredService<TrayIconViewModel>();
+        DataContext = services.GetRequiredService<TrayIconViewModel>();
         AvaloniaXamlLoader.Load(this);
     }
 
@@ -98,11 +56,11 @@ public class App : Application
             
             desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             
-            LoadSettingsAsync(_services.GetRequiredService<SettingsSerializer>());
+            LoadSettingsAsync(services.GetRequiredService<SettingsSerializer>());
             
-            _services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
+            services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
             
-            _mainWindow = _services.GetRequiredService<MainWindow.MainWindow>();
+            _mainWindow = services.GetRequiredService<MainWindow.MainWindow>();
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -113,14 +71,14 @@ public class App : Application
         try
         {
             var settings = await settingsSerializer.Load();
-            if (!settings.StartMinimized) Dispatcher.UIThread.Post(_services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+            if (!settings.StartMinimized) Dispatcher.UIThread.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
         }
         catch (Exception ex)
         {
             Helpers.DebugWriteLine("Failed to load settings.");
             Dispatcher.UIThread.Post(() =>
             {
-                Program.MessageBoxError(ex.Message, "Unhandled exception while loading settings");
+                Program.OnUnhandledException(ex, "Unhandled exception while loading settings:");
                 ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
             });
         }
@@ -128,6 +86,23 @@ public class App : Application
 
     // ReSharper disable once AsyncVoidMethod
     private async void OnSettingUpdateFailed(object? sender, ChangeFailReason e)
+    {
+        switch (e)
+        {
+            case ChangeFailReason.ElevatedPermissionsRequired:
+                await PromptToRestartElevated();
+                break;
+            
+            case ChangeFailReason.UnhandledException:
+                ThrowOnMainThread(new InvalidOperationException("Unhandled exception while loading settings."));
+                break;
+            
+            default:
+                throw new NotImplementedException();
+        }
+    }
+
+    private async Task PromptToRestartElevated()
     {
         TryGetResource("ShieldIcon", null, out var acceptIcon);
 

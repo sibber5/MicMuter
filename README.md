@@ -1,6 +1,6 @@
-<h1 align="center" style="display: flex; justify-content: center; align-items: center;">
-  <img src="readme_assets/icon.ico?raw=true" height="35">
-  <span style="margin-left: 5px; margin-bottom: 5px;">MicMuter</span>
+<h1 align="center">
+  <img src="readme_assets/icon.ico?raw=true" height="28">
+  <span>MicMuter</span>
 </h1>
 
 <div align="center">

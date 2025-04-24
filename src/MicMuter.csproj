@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3"/>
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1"/>
     <PackageReference Include="TaskScheduler" Version="2.12.1"/>
+    <PackageReference Include="Velopack" Version="0.0.1053" />
   </ItemGroup>
 
   <ItemGroup>
