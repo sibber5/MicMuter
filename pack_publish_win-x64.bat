@@ -14,6 +14,6 @@ for /f "tokens=1-3 delims=." %%a in ("%fileVersion%") do set version=%%a.%%b.%%c
 
 echo Packing %packId% v%version%
 
-vpk pack --packTitle MicMuter --packAuthors sibber5 --icon ./src/Assets/icon_unmuted.ico --packId %packId% --packVersion %version% --packDir ./publish/win-x64 --outputDir ./publish_installer/win-x64 --mainExe MicMuter.exe --framework net9.0-x64-desktop
+vpk pack --packTitle MicMuter --packAuthors sibber --icon ./src/Assets/icon_unmuted.ico --packId %packId% --packVersion %version% --packDir ./publish/win-x64 --outputDir ./publish_installer/win-x64 --mainExe MicMuter.exe --framework net9.0-x64-desktop
 
 if "%1" NEQ "--no-pause" pause
