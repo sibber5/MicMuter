@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <DrawingImage x:Key="ShieldIcon">
+        <GeometryDrawing Geometry="F1 M117 247C-9 206 8 44 8 44C76 45 117 9 117 9C117 9 156 45 224 44C224 44 242 206 117 247L117 247Z">
+            <GeometryDrawing.Pen>
+                <Pen Brush="{DynamicResource TextControlButtonForeground}" Thickness="25" LineCap="Round" LineJoin="Round" />
+            </GeometryDrawing.Pen>
+        </GeometryDrawing>
+    </DrawingImage>
+    
+</ResourceDictionary>

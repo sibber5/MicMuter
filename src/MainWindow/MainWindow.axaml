@@ -1,0 +1,76 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MicMuter.MainWindow"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:c="using:MicMuter.Controls"
+        mc:Ignorable="d" d:DesignWidth="430" d:DesignHeight="270"
+        x:Class="MicMuter.MainWindow.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/icon_unmuted.ico"
+        Title="MicMuter"
+        Width="370" Height="222"
+        MinWidth="330" MinHeight="222">
+
+    <StackPanel Margin="20,20,20,20" Spacing="10">
+        
+        <c:Setting Text="Device">
+            <c:Setting.Content>
+                <ComboBox Name="DeviceCombobox"
+                          MinWidth="150" HorizontalAlignment="Right"
+                          SelectedItem="{Binding Settings.MicDevice, Mode=TwoWay}"
+                          ItemsSource="{Binding Mics, Mode=OneWay}"
+                          ToolTip.Tip="{Binding Settings.MicDevice.FriendlyName, TargetNullValue='', FallbackValue=''}"
+                          DropDownOpened="DeviceCombobox_OnDropDownOpened">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding FriendlyName, Mode=OneTime}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </c:Setting.Content>
+        </c:Setting>
+
+        <c:Setting Text="Mute shortcut">
+            <c:Setting.Content>
+                <Button Name="ShortcutButton"
+                        MinWidth="150" HorizontalAlignment="Right" VerticalAlignment="Stretch"
+                        Content="{Binding Shortcut, Mode=OneWay}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        LostFocus="EditShortcut_OnLostFocus"
+                        Click="EditShortcut_OnClick"
+                        KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
+            </c:Setting.Content>
+        </c:Setting>
+        
+        <c:Setting Text="Ignore extra modifier keys 🛈"
+                   ToolTip.Tip="If off, then only the modifier keys specified in the shortcut must be pressed (and the other ones must not be pressed) for it to be triggered"
+                   Margin="15,-5,0,0">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.IgnoreExtraModifiers, Mode=TwoWay}"/>
+            </c:Setting.Content>
+        </c:Setting>
+
+        <c:Setting Text="Run on startup">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
+            </c:Setting.Content>
+        </c:Setting>
+        
+        <c:Setting Text="Start as admin 🛈"
+                   ToolTip.Tip="Allows the shortcut to work in cases where it otherwise wouldn't, e.g. in some fullscreen applications"
+                   Margin="15,-5,0,0">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.StartElevated, Mode=TwoWay}"
+                              IsEnabled="{Binding Settings.RunOnStartup}"/>
+            </c:Setting.Content>
+        </c:Setting>
+
+        <c:Setting Text="Start minimized to tray">
+            <c:Setting.Content>
+                <ToggleSwitch IsChecked="{Binding Settings.StartMinimized, Mode=TwoWay}" />
+            </c:Setting.Content>
+        </c:Setting>
+
+    </StackPanel>
+
+</Window>

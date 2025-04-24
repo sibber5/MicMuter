@@ -1,0 +1,1 @@
+update ./src/MicMuter.csproj and ./src/app.manifest
