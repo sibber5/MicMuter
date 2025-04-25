@@ -1,1 +1,4 @@
-update ./src/MicMuter.csproj and ./src/app.manifest
+update:
+./src/MicMuter.csproj
+./src/app.manifest
+BUG-REPORT.yml
