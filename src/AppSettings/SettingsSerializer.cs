@@ -28,7 +28,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         catch (Exception ex)
         {
             Helpers.DebugWriteLine($"\nError serializing settings, Exception: {ex}\n");
-            App.ThrowOnMainThread(ex);
+            Program.OnUnhandledException(ex);
         }
     }
 

@@ -8,6 +8,7 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="LicenseNotices/LicenseView.axaml" />
     </Application.Styles>
     
     <Application.Resources>
@@ -21,11 +22,13 @@
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="{Binding CurrentIcon, Mode=OneWay}"
-                      ToolTipText="MicMuter"
+                      ToolTipText="{Binding ToolTip, Mode=OneTime}"
                       Clicked="SettingsMenuItem_OnClick">
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem Header="Settings" Click="SettingsMenuItem_OnClick" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="About" Click="AboutMenuItem_OnClick" />
                         <NativeMenuItemSeparator />
                         <NativeMenuItem Header="Exit" Click="ExitMenuItem_OnClick" />
                     </NativeMenu>

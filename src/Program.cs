@@ -17,6 +17,7 @@ using MicMuter.MiscServices;
 using MicMuter.MiscServices.AutostartManager;
 using MicMuter.MiscServices.ElevatedCheck;
 using Microsoft.Extensions.DependencyInjection;
+using NAudio.CoreAudioApi;
 using Velopack;
 
 namespace MicMuter;

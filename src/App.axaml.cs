@@ -30,14 +30,14 @@ public class App(IServiceProvider services) : Application
         _mainWindow.Activate();
     }
     
+    private void AboutMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        new AboutWindow().Show();
+    }
+    
     private void ExitMenuItem_OnClick(object? sender, EventArgs e)
     {
         ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
-    }
-
-    public static void ThrowOnMainThread<T>(T ex) where T : Exception
-    {
-        Dispatcher.UIThread.Post(() => throw ex);
     }
     
     public override void Initialize()
@@ -83,25 +83,32 @@ public class App(IServiceProvider services) : Application
             });
         }
     }
-
+    
     // ReSharper disable once AsyncVoidMethod
     private async void OnSettingUpdateFailed(object? sender, ChangeFailReason e)
     {
         switch (e)
         {
             case ChangeFailReason.ElevatedPermissionsRequired:
-                await PromptToRestartElevated();
+                try
+                {
+                    await PromptToRestartElevated();
+                }
+                catch (Exception ex)
+                {
+                    Dispatcher.UIThread.Post(() => Program.OnUnhandledException(ex));
+                }
                 break;
             
             case ChangeFailReason.UnhandledException:
-                ThrowOnMainThread(new InvalidOperationException("Unhandled exception while loading settings."));
+                Dispatcher.UIThread.Post(() => throw new InvalidOperationException("Unhandled exception while loading settings."));
                 break;
             
             default:
                 throw new NotImplementedException();
         }
     }
-
+    
     private async Task PromptToRestartElevated()
     {
         TryGetResource("ShieldIcon", null, out var acceptIcon);
@@ -112,16 +119,9 @@ public class App(IServiceProvider services) : Application
             "Restart",
             "Cancel",
             acceptIcon: (IImage)acceptIcon!);
-
-        try
-        {
-            var result = await v.ShowDialog<DialogResult>(_mainWindow);
-            if (result == DialogResult.Accept) await RestartElevated();
-        }
-        catch (Exception ex)
-        {
-            ThrowOnMainThread(ex);
-        }
+        
+        var result = await v.ShowDialog<DialogResult>(_mainWindow);
+        if (result == DialogResult.Accept) await RestartElevated();
     }
 
     private async ValueTask RestartElevated()

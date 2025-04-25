@@ -1,0 +1,42 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:MicMuter"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="MicMuter.AboutWindow"
+        x:DataType="local:AboutWindow"
+        Width="450" Height="500"
+        Title="About MicMuter">
+    <Window.Styles>
+        <Style Selector="StackPanel > :is(Control)">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+    </Window.Styles>
+    
+    <ScrollViewer>
+        <StackPanel Margin="40" Spacing="20" HorizontalAlignment="Center">
+            
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <Image Source="/Assets/icon_unmuted.ico" Height="28" Width="28" />
+                <TextBlock Text="MicMuter" FontSize="24" VerticalAlignment="Center" FontWeight="Bold"/>
+                <TextBlock Text="{Binding AppVersion, Mode=OneTime}" FontSize="24" VerticalAlignment="Center" />
+            </StackPanel>
+            
+            <TextBlock Margin="0,10,0,-20" Text="MicMuter is licensed under the MIT License" FontSize="16" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/sibber5/MicMuter" />
+                <HyperlinkButton Content="License" NavigateUri="https://github.com/sibber5/MicMuter/blob/main/LICENSE" />
+            </StackPanel>
+            
+            <TextBlock Margin="0,10,0,0"  Text="Third Party License Notices" FontWeight="Bold" FontSize="18" />
+            
+            <ItemsRepeater Name="LicensesRepeater">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Vertical" Spacing="10" />
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+            
+        </StackPanel>
+    </ScrollViewer>
+</Window>

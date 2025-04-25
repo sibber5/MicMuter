@@ -1,18 +1,21 @@
-﻿using Avalonia.Controls;
+﻿using System.Reflection;
+using Avalonia.Controls;
 using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MicMuter.MiscServices;
-
+    
 namespace MicMuter;
 
 internal sealed partial class TrayIconViewModel : ObservableObject
 {
-    private readonly WindowIcon _unmutedIcon = new(AssetLoader.Open(new("avares://MicMuter/Assets/icon_unmuted.ico")));
-    private readonly WindowIcon _mutedIcon = new(AssetLoader.Open(new("avares://MicMuter/Assets/icon_muted.ico")));
+    public string ToolTip => $"MicMuter {Assembly.GetExecutingAssembly().GetName().Version.To3PartVersion()}";
     
     [ObservableProperty]
     private WindowIcon _currentIcon;
-
+    
+    private readonly WindowIcon _unmutedIcon = new(AssetLoader.Open(new("avares://MicMuter/Assets/icon_unmuted.ico")));
+    private readonly WindowIcon _mutedIcon = new(AssetLoader.Open(new("avares://MicMuter/Assets/icon_muted.ico")));
+    
     private readonly MicMuterService _micMuterService;
     
     public TrayIconViewModel(MicMuterService micMuterService)
