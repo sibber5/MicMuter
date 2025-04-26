@@ -7,8 +7,8 @@ namespace MicMuter.Audio.Windows;
 
 internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
 {
-    // private static readonly Lazy<WasapiDefaultMicDeviceRef> _instance = new(() => new WasapiDefaultMicDeviceRef());
-    public static IMicDevice Instance { get; } = new WasapiDefaultMicDeviceRef();
+    private static readonly Lazy<WasapiDefaultMicDeviceRef> _instance = new(() => Avalonia.Threading.Dispatcher.UIThread.Invoke(() => new WasapiDefaultMicDeviceRef()));
+    public static IMicDevice Instance { get; } = _instance.Value;
 
     public string Id => "467fc274-0b3f-4245-99c5-6a3dacc01d7f";
     public string FriendlyName => $"Default ({Device.FriendlyName})";

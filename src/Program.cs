@@ -127,6 +127,7 @@ internal sealed class Program
     private static IServiceProvider ConfigureServices()
     {
         return ConfigureServicesForWindows();
+        // return ConfigureDummyServices();
     }
     
     private static IServiceProvider ConfigureServicesForWindows()
@@ -153,6 +154,33 @@ internal sealed class Program
         
         return services.BuildServiceProvider();
     }
+    
+    #if DEBUG
+    private static IServiceProvider ConfigureDummyServices()
+    {
+        ServiceCollection services = new();
+
+        services.AddTransient(typeof(LazyService<>));
+
+        services.AddSingleton<SettingsSerializer>();
+        services.AddSingleton<Settings>();
+        services.AddSingleton<MicMuterService>();
+        
+        services.AddSingleton<IMicDeviceManager, DummyServices.DummyMicDeviceManager>();
+        services.AddSingleton<IGlobalHotkeyFactory, DummyServices.DummyGlobalHotkeyFactory>();
+        services.AddSingleton<IElevatedChecker, DummyServices.DummyElevatedChecker>();
+        services.AddSingleton<IAutostartManager, DummyServices.DummyAutostartManager>();
+
+        services.AddSingleton<TrayIconViewModel>();
+        services.AddSingleton<MainWindowViewModel>();
+        
+        services.AddSingleton<MainWindow.MainWindow>();
+
+        services.AddSingleton<Func<IPlatformHandle?>>(provider => provider.GetRequiredService<MainWindow.MainWindow>().TryGetPlatformHandle);
+        
+        return services.BuildServiceProvider();
+    }
+    #endif
     
     private static void TaskScheduler_OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
