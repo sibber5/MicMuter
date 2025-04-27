@@ -19,6 +19,8 @@ public readonly partial record struct PackageLicenseInfoParser : IDisposable
     
     public void Dispose() => _jsonStream.Dispose();
     
+    // generated with nuget-license https://github.com/sensslen/nuget-license
+    // and added license notice for WindowMessageMonitor
     private static readonly byte[] PackageLicenseInfoJson = """
     [
         {
@@ -93,7 +95,7 @@ public readonly partial record struct PackageLicenseInfoParser : IDisposable
         },
         {
             "PackageId": "Microsoft.Extensions.DependencyInjection",
-            "PackageVersion": "9.0.3",
+            "PackageVersion": "9.0.4",
             "PackageProjectUrl": "https://dot.net/",
             "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
             "Authors": "Microsoft",
@@ -112,6 +114,42 @@ public readonly partial record struct PackageLicenseInfoParser : IDisposable
             "LicenseInformationOrigin": 0
         },
         {
+            "PackageId": "Serilog.Enrichers.Thread",
+            "PackageVersion": "4.0.0",
+            "PackageProjectUrl": "http://serilog.net/",
+            "Authors": "Serilog Contributors",
+            "License": "Apache-2.0",
+            "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+            "LicenseInformationOrigin": 0
+        },
+        {
+            "PackageId": "Serilog.Extensions.Logging",
+            "PackageVersion": "9.0.1",
+            "PackageProjectUrl": "https://github.com/serilog/serilog-extensions-logging",
+            "Authors": "Microsoft,Serilog Contributors",
+            "License": "Apache-2.0",
+            "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+            "LicenseInformationOrigin": 0
+        },
+        {
+            "PackageId": "Serilog.Sinks.Debug",
+            "PackageVersion": "3.0.0",
+            "PackageProjectUrl": "https://github.com/serilog/serilog-sinks-debug",
+            "Authors": "Serilog Contributors",
+            "License": "Apache-2.0",
+            "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+            "LicenseInformationOrigin": 0
+        },
+        {
+            "PackageId": "Serilog.Sinks.File",
+            "PackageVersion": "6.0.0",
+            "PackageProjectUrl": "https://github.com/serilog/serilog-sinks-file",
+            "Authors": "Serilog Contributors",
+            "License": "Apache-2.0",
+            "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+            "LicenseInformationOrigin": 0
+        },
+        {
             "PackageId": "TaskScheduler",
             "PackageVersion": "2.12.1",
             "PackageProjectUrl": "https://github.com/dahall/taskscheduler",
@@ -126,9 +164,19 @@ public readonly partial record struct PackageLicenseInfoParser : IDisposable
             "PackageVersion": "0.0.1053",
             "PackageProjectUrl": "https://github.com/velopack/velopack",
             "Copyright": "Copyright \u00A9 Velopack Ltd. All rights reserved.",
-            "Authors": "Velopack Ltd,Caelan Sayler,Kevin Bost",
+            "Authors": "Velopack Ltd, Caelan Sayler, Kevin Bost",
             "License": "MIT",
             "LicenseUrl": "https://licenses.nuget.org/MIT",
+            "LicenseInformationOrigin": 0
+        },
+        {
+            "PackageId": "WindowMessageMonitor (modified) from WinUIEx",
+            "PackageVersion": "2.5.1",
+            "PackageProjectUrl": "https://github.com/dotMorten/WinUIEx/blob/39642067c2815857c66e3c6e183d2aa85bbafc54/src/WinUIEx/Messaging/WindowMessageMonitor.cs",
+            "Copyright": "Copyright \u00A9 2021-2025 - Morten Nielsen",
+            "Authors": "Morten Nielsen - https://xaml.dev",
+            "License": "MIT",
+            "LicenseUrl": "https://www.nuget.org/packages/WinUIEx/2.5.1/license",
             "LicenseInformationOrigin": 0
         }
     ]
