@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using NAudio.CoreAudioApi;
 using NAudio.CoreAudioApi.Interfaces;
 using static MicMuter.Audio.Windows.WindowsMicDeviceManager;
@@ -16,7 +17,9 @@ internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
     public void ToggleMute() => Device.AudioEndpointVolume.Mute = !Device.AudioEndpointVolume.Mute;
 
     public event EventHandler<bool>? MuteStatusChanged;
-
+    
+    private readonly ILogger<WasapiDefaultMicDeviceRef> _logger = StaticLogger.CreateLogger<WasapiDefaultMicDeviceRef>();
+    
     private MMDevice? _device;
     private MMDevice Device
     {
@@ -28,11 +31,11 @@ internal sealed class WasapiDefaultMicDeviceRef : IMicDevice
             if (_device is not null)
             {
                 _device.AudioEndpointVolume.OnVolumeNotification -= OnVolumeNotification;
-                Helpers.DebugWriteLine($"Unregistered volume notification for {_device.FriendlyName}");
+                _logger.LogInformation("Unregistered volume notification for {DeviceFriendlyName}", _device.FriendlyName);
             }
             
             value.AudioEndpointVolume.OnVolumeNotification += OnVolumeNotification;
-            Helpers.DebugWriteLine($"Registered volume notification for {value.FriendlyName}");
+            _logger.LogInformation("Registered volume notification for {DeviceFriendlyName}", value.FriendlyName);
             OnMuteStatusChanged(value.AudioEndpointVolume.Mute);
             
             _device = value;

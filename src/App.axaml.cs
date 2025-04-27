@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -14,15 +13,16 @@ using Avalonia.Threading;
 using MicMuter.AppSettings;
 using MicMuter.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace MicMuter;
 
-public class App(IServiceProvider services) : Application
+public class App(ServiceProvider services) : Application
 {
-    public static string ExePath { get; } = Path.Join(AppContext.BaseDirectory, $"{nameof(MicMuter)}.exe");
-
     private Window _mainWindow = null!;
-
+    
+    private ILogger<App> _logger = null!;
+    
     private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
     {
         _mainWindow.Show();
@@ -48,21 +48,23 @@ public class App(IServiceProvider services) : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit. 
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
-            
-            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            
-            LoadSettingsAsync(services.GetRequiredService<SettingsSerializer>());
-            
-            services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
-            
-            _mainWindow = services.GetRequiredService<MainWindow.MainWindow>();
-        }
-
+        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) throw new NotSupportedException();
+        
+        // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
+        // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+        DisableAvaloniaDataAnnotationValidation();
+        
+        _logger = services.GetRequiredService<ILogger<App>>();
+        
+        desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        desktop.Exit += (_, _) => services.Dispose();
+        
+        LoadSettingsAsync(services.GetRequiredService<SettingsSerializer>());
+        
+        services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
+        
+        _mainWindow = services.GetRequiredService<MainWindow.MainWindow>();
+        
         base.OnFrameworkInitializationCompleted();
     }
 
@@ -75,7 +77,7 @@ public class App(IServiceProvider services) : Application
         }
         catch (Exception ex)
         {
-            Helpers.DebugWriteLine("Failed to load settings.");
+            _logger.LogError("Failed to load settings.");
             Dispatcher.UIThread.Post(() =>
             {
                 Program.OnUnhandledException(ex, "Unhandled exception while loading settings:");
@@ -136,7 +138,7 @@ public class App(IServiceProvider services) : Application
         
         ProcessStartInfo info = new()
         {
-            FileName = ExePath,
+            FileName = Paths.ExePath,
             Verb = "runas",
             UseShellExecute = true,
         };

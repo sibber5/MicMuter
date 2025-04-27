@@ -27,8 +27,12 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.3"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1"/>
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.1" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="3.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="TaskScheduler" Version="2.12.1"/>
     <PackageReference Include="Velopack" Version="0.0.1053" />
   </ItemGroup>

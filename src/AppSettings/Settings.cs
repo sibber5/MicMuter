@@ -5,10 +5,11 @@ using MicMuter.Hotkeys;
 using MicMuter.MiscServices;
 using MicMuter.MiscServices.AutostartManager;
 using MicMuter.MiscServices.ElevatedCheck;
+using Microsoft.Extensions.Logging;
 
 namespace MicMuter.AppSettings;
 
-public sealed partial class Settings(IAutostartManager autostartManager, IElevatedChecker elevatedChecker, LazyService<SettingsSerializer> serializer) : ObservableObject
+public sealed partial class Settings(IAutostartManager autostartManager, IElevatedChecker elevatedChecker, LazyService<SettingsSerializer> serializer, ILogger<Settings> logger) : ObservableObject
 {
     public event EventHandler<ChangeFailReason>? SettingUpdateFailed; 
     
@@ -58,7 +59,7 @@ public sealed partial class Settings(IAutostartManager autostartManager, IElevat
         
         if (!elevatedChecker.IsElevated && (elevated || oldElevated))
         {
-            Helpers.DebugWriteLine($"Updating Run on Startup failed. Reason: {ChangeFailReason.ElevatedPermissionsRequired}");
+            logger.LogWarning("Updating Run on Startup failed. Reason: {ChangeFailReason}", ChangeFailReason.ElevatedPermissionsRequired);
             SettingUpdateFailed?.Invoke(this, ChangeFailReason.ElevatedPermissionsRequired);
             return true;
         }

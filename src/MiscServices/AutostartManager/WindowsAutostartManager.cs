@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
 
@@ -8,7 +9,7 @@ namespace MicMuter.MiscServices.AutostartManager;
 
 #pragma warning disable CA1416 // (Validate platform compatibility)
 
-internal sealed class WindowsAutostartManager : IAutostartManager
+internal sealed class WindowsAutostartManager(ILogger<WindowsAutostartManager> logger) : IAutostartManager
 {
     public void SetAutostart(bool value, bool elevated)
     {
@@ -16,25 +17,25 @@ internal sealed class WindowsAutostartManager : IAutostartManager
         else SetStartupKey(value);
     }
     
-    private static void SetStartupKey(bool value)
+    private void SetStartupKey(bool value)
     {
         const string path = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
         RegistryKey key = Registry.CurrentUser.OpenSubKey(path, true) ?? throw new InvalidOperationException("Opening registry key failed.");
         
         if (value)
         {
-            key.SetValue(nameof(MicMuter), App.ExePath);
-            Helpers.DebugWriteLine("Created startup registry key");
+            key.SetValue(nameof(MicMuter), Paths.ExePath);
+            logger.LogInformation("Created startup registry key");
             return;
         }
         
         if (key.GetValue(nameof(MicMuter)) is null) return;
         
         key.DeleteValue(nameof(MicMuter));
-        Helpers.DebugWriteLine("Deleted startup registry key");
+        logger.LogInformation("Deleted startup registry key");
     }
-
-    private static void SetStartupAsAdminTask(bool value)
+    
+    private void SetStartupAsAdminTask(bool value)
     {
         string taskName = $"{nameof(MicMuter)} - Run on startup for {Environment.UserName}";
         TaskDefinition? taskDef = null;
@@ -46,6 +47,7 @@ internal sealed class WindowsAutostartManager : IAutostartManager
             if (!value)
             {
                 task?.Folder.DeleteTask(taskName, false);
+                logger.LogInformation("Deleted startup task");
                 return;
             }
             
@@ -56,7 +58,7 @@ internal sealed class WindowsAutostartManager : IAutostartManager
                 taskDef.RegistrationInfo.Description = "Automatically runs MicMuter with administrator privileges on startup.";
                 taskDef.Principal.RunLevel = TaskRunLevel.Highest;
                 taskDef.Triggers.Add(new LogonTrigger { UserId = Environment.UserName });
-                taskDef.Actions.Add(App.ExePath);
+                taskDef.Actions.Add(Paths.ExePath);
                 
                 // some of these are on by default for some reason,
                 // set all to off in case of some breaking change in the future
@@ -69,6 +71,11 @@ internal sealed class WindowsAutostartManager : IAutostartManager
                 taskDef.Settings.RunOnlyIfNetworkAvailable = false;
                 
                 task = TaskService.Instance.RootFolder.RegisterTaskDefinition(taskName, taskDef);
+                logger.LogInformation("Created startup task");
+            }
+            else
+            {
+                logger.LogInformation("Startup task already exists.");
             }
             
             task.Enabled = true;

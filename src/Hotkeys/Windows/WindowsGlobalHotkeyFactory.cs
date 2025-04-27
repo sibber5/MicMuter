@@ -124,7 +124,7 @@ file static class WindowsHotkeyFactoryImpl
 
             if (!PInvoke.RegisterHotKey(hWnd, id, modifiers, vk)) throw new Win32Exception();
 
-            return new WindowsGlobalHotkey(shortcut, hWnd, id);
+            return new WindowsGlobalHotkey(shortcut, hWnd, id, StaticLogger.CreateLogger<WindowsGlobalHotkey>());
         }
     }
 }

@@ -5,6 +5,7 @@ using Avalonia.Platform;
 using MicMuter.AppSettings;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
+using Microsoft.Extensions.Logging;
 
 namespace MicMuter.MiscServices;
 
@@ -18,6 +19,8 @@ internal sealed class MicMuterService : IDisposable
     private readonly IGlobalHotkeyFactory _hotkeyFactory;
 
     private readonly LazyService<Func<IPlatformHandle?>> _getMainWindowHandle;
+    
+    private readonly ILogger<MicMuterService> _logger;
 
     private IMicDevice? _mic;
     private IMicDevice? Mic
@@ -42,10 +45,11 @@ internal sealed class MicMuterService : IDisposable
         }
     }
 
-    public MicMuterService(IGlobalHotkeyFactory hotkeyFactory, Settings settings, LazyService<Func<IPlatformHandle?>> getMainWindowHandle)
+    public MicMuterService(IGlobalHotkeyFactory hotkeyFactory, Settings settings, LazyService<Func<IPlatformHandle?>> getMainWindowHandle, ILogger<MicMuterService> logger)
     {
         _hotkeyFactory = hotkeyFactory;
         _getMainWindowHandle = getMainWindowHandle;
+        _logger = logger;
         Mic = settings.MicDevice;
         UpdateMuteShortcut(settings.MuteShortcut, settings.IgnoreExtraModifiers);
         settings.PropertyChanged += Settings_OnPropertyChanged;
@@ -99,7 +103,7 @@ internal sealed class MicMuterService : IDisposable
         }
 
         _hotkey!.Pressed += OnHotkeyPressed;
-        Helpers.DebugWriteLine($"Registered new hotkey: {_hotkey.Shortcut}");
+        _logger.LogInformation("Registered new hotkey: {Shortcut}", _hotkey.Shortcut);
     }
 
     public void Dispose() => _hotkey?.Dispose();

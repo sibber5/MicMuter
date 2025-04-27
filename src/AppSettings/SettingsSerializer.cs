@@ -7,14 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
+using Microsoft.Extensions.Logging;
 
 namespace MicMuter.AppSettings;
 
-public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager)
+public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager, ILogger<SettingsSerializer> logger)
 {
-    public static readonly string SaveFileDir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "/MicMuter");
-    public static readonly string SaveFilePath = Path.Join(SaveFileDir, "/UserSettings.json");
-    
     public bool IsLoadingSettings { get; private set; }
     
     private bool _loaded = false;
@@ -27,16 +25,16 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         }
         catch (Exception ex)
         {
-            Helpers.DebugWriteLine($"\nError serializing settings, Exception: {ex}\n");
+            logger.LogError("Error serializing settings, Exception: {Exception}", ex);
             Program.OnUnhandledException(ex);
         }
     }
 
     private async Task Serialize()
     {
-        Helpers.DebugWriteLine("Saving settings...");
-        Directory.CreateDirectory(SaveFileDir);
-        await using FileStream createStream = File.Create(SaveFilePath);
+        logger.LogInformation("Saving settings...");
+        Directory.CreateDirectory(Paths.SaveFileDir);
+        await using FileStream createStream = File.Create(Paths.SaveFilePath);
         await JsonSerializer.SerializeAsync(createStream, settings.ToSettingsDto(), SourceGenerationContext.Default.SettingsDto);
     }
 
@@ -48,29 +46,28 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         SettingsDto? dto = null;
         try
         {
-            Directory.CreateDirectory(SaveFileDir);
-            await using FileStream readStream = File.OpenRead(SaveFilePath);
+            Directory.CreateDirectory(Paths.SaveFileDir);
+            await using FileStream readStream = File.OpenRead(Paths.SaveFilePath);
             dto = await JsonSerializer.DeserializeAsync(readStream, SourceGenerationContext.Default.SettingsDto);
         }
         catch (FileNotFoundException)
         {
-            Helpers.DebugWriteLine("Settings file not found.");
+            logger.LogWarning("Settings file not found.");
         }
         
         dto.LoadInto(settings, micDeviceManager);
         
         settings.PropertyChanged += Settings_OnPropertyChanged;
         
-        Helpers.DebugWriteLine("Successfully loaded settings.");
-
+        logger.LogInformation("Successfully loaded settings.");
+        
         IsLoadingSettings = false;
         return settings;
     }
     
-    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool ignoreExtraModifiers, bool RunOnStartup, bool StartElevated, bool StartMinimized);
+    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, bool RunOnStartup, bool StartElevated, bool StartMinimized);
     
-    [JsonSourceGenerationOptions(WriteIndented = true)]
-    // [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonSourceGenerationOptions(WriteIndented = true, UseStringEnumConverter = true)]
     [JsonSerializable(typeof(SettingsDto))]
     private partial class SourceGenerationContext : JsonSerializerContext;
 }

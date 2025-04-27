@@ -1,9 +1,10 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using NAudio.CoreAudioApi;
 
 namespace MicMuter.Audio.Windows;
 
-internal sealed class WasapiMicDevice(MMDevice device) : IMicDevice
+internal sealed class WasapiMicDevice(MMDevice device, ILogger<WasapiMicDevice> logger) : IMicDevice
 {
     public string Id => device.ID;
     
@@ -19,7 +20,7 @@ internal sealed class WasapiMicDevice(MMDevice device) : IMicDevice
             if (_muteStatusChanged is null)
             {
                 device.AudioEndpointVolume.OnVolumeNotification += OnVolumeNotification;
-                Helpers.DebugWriteLine($"Registered volume notification for {device.FriendlyName}");
+                logger.LogInformation("Registered volume notification for {DeviceFriendlyName}", device.FriendlyName);
             }
             _muteStatusChanged += value;
         }
@@ -29,7 +30,7 @@ internal sealed class WasapiMicDevice(MMDevice device) : IMicDevice
             if (_muteStatusChanged is null)
             {
                 device.AudioEndpointVolume.OnVolumeNotification -= OnVolumeNotification;
-                Helpers.DebugWriteLine($"Unregistered volume notification for {device.FriendlyName}");
+                logger.LogInformation("Unregistered volume notification for {DeviceFriendlyName}", device.FriendlyName);
                 _prevMuted = null;
             }
         }

@@ -25,7 +25,6 @@ public partial class MainWindow : Window
         Closing += OnClosing;
         Loaded += OnLoaded;
         InitializeComponent();
-        Helpers.DebugWriteLine("Initialized.");
     }
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)

@@ -14,7 +14,7 @@ public class WindowsMicDeviceManager : IMicDeviceManager
     private static IMicDevice ToMicDevice(MMDevice mmDevice)
         => WasapiDefaultMicDeviceRef.Instance.Id.Equals(mmDevice.ID, StringComparison.Ordinal)
             ? WasapiDefaultMicDeviceRef.Instance
-            : _deviceMap.GetOrAdd(mmDevice.ID, static (_, d) => new WasapiMicDevice(d), mmDevice);
+            : _deviceMap.GetOrAdd(mmDevice.ID, static (_, d) => new WasapiMicDevice(d, StaticLogger.CreateLogger<WasapiMicDevice>()), mmDevice);
     
     private MMDeviceCollection? _lastDeviceCol;
     private IReadOnlyList<IMicDevice>? _lastIMicDeviceList;
@@ -29,11 +29,11 @@ public class WindowsMicDeviceManager : IMicDeviceManager
         
         return _lastIMicDeviceList!;
     }
-
+    
     public IMicDevice GetDefaultMicDevice() => WasapiDefaultMicDeviceRef.Instance;
-
+    
     public IMicDevice GetMicDeviceById(string id)
         => WasapiDefaultMicDeviceRef.Instance.Id.Equals(id, StringComparison.Ordinal)
             ? WasapiDefaultMicDeviceRef.Instance
-            : _deviceMap.GetOrAdd(id, static id => new WasapiMicDevice(DeviceEnumerator.GetDevice(id)));
+            : _deviceMap.GetOrAdd(id, static id => new WasapiMicDevice(DeviceEnumerator.GetDevice(id), StaticLogger.CreateLogger<WasapiMicDevice>()));
 }
