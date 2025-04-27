@@ -32,10 +32,10 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
 
     private async Task Serialize()
     {
-        logger.LogInformation("Saving settings...");
         Directory.CreateDirectory(Paths.SaveFileDir);
         await using FileStream createStream = File.Create(Paths.SaveFilePath);
         await JsonSerializer.SerializeAsync(createStream, settings.ToSettingsDto(), SourceGenerationContext.Default.SettingsDto);
+        logger.LogInformation("Successfully Saved settings.");
     }
 
     public async Task<Settings> Load()

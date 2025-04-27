@@ -111,15 +111,13 @@ public partial class MainWindow : Window
         
         // This only executes if the key didnt trigger OnKeyDown, which means it is registered in a hotkey either by MicMuter or another application.
         // If it is registered by another application, then we cant register it, so do nothing.
-        // If it is registered by MicMuter, then set it again in the viewmodel.
+        // If it is registered by MicMuter, then set it in the viewmodel to register it.
         
-        Shortcut shortcut = new(e.Key, e.KeyModifiers);
+        Shortcut newShortcut = new(e.Key, e.KeyModifiers);
+        bool isRegisteredByMicMuter = (!_vm.Settings.IgnoreExtraModifiers && newShortcut == _vm.Settings.MuteShortcut)
+                                      || (_vm.Settings.IgnoreExtraModifiers && _vm.Settings.MuteShortcut.IsTriggeredBy(newShortcut));
         
-        if ((!_vm.Settings.IgnoreExtraModifiers && shortcut == _vm.Settings.MuteShortcut)
-            || (_vm.Settings.IgnoreExtraModifiers && _vm.Settings.MuteShortcut.IsTriggeredBy(shortcut)))
-        {
-            _vm.Shortcut = _vm.Settings.MuteShortcut;
-        }
+        if (isRegisteredByMicMuter) _vm.Shortcut = newShortcut;
         
         EndEditShortcut();
     }

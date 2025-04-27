@@ -5,7 +5,7 @@ using MicMuter.NativeMisc.Windows.Types;
 
 namespace MicMuter.NativeMisc.Windows;
 
-// From https://github.com/dotMorten/WinUIEx by dotMorten
+// From (modified) https://github.com/dotMorten/WinUIEx by dotMorten
 // MIT License
 // 
 // Copyright(c) 2021 Morten Nielsen
@@ -73,7 +73,7 @@ internal sealed class WindowMessageMonitor : IDisposable
 
         if (_windowMessageReceived != null)
         {
-            RemoveWindowSubclass();
+            RemoveWindowSubclass(true);
             _windowMessageReceived = null;
         }
 
@@ -135,16 +135,16 @@ internal sealed class WindowMessageMonitor : IDisposable
         }
     }
 
-    private unsafe void RemoveWindowSubclass()
+    private unsafe void RemoveWindowSubclass(bool disposing = false)
     {
         lock (_lockObject)
         {
-            ObjectDisposedException.ThrowIf(_disposed, this);
+            if (!disposing) ObjectDisposedException.ThrowIf(_disposed, this);
             if (!_monitorGCHandle.HasValue) return;
             
             bool ok = PInvoke.RemoveWindowSubclass(Hwnd, &NewWindowProc, _classId);
-            if (!ok) throw new Exception("Error removing window subclass.");
-
+            if (!disposing && !ok) throw new Exception("Error removing window subclass.");
+            
             _monitorGCHandle?.Free();
             _monitorGCHandle = null;
         }
@@ -195,4 +195,9 @@ internal static partial class PInvoke
     [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static unsafe partial bool RemoveWindowSubclass(nint hWnd, delegate* unmanaged[Stdcall]<nint, uint, nuint, nint, nuint, nuint, nint> pfnSubclass, nuint uIdSubclass);
+    
+    [LibraryImport("USER32.dll")]
+    [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static unsafe partial bool IsWindow(nint hWnd);
 }

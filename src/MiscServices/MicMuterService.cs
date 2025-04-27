@@ -103,7 +103,7 @@ internal sealed class MicMuterService : IDisposable
         }
 
         _hotkey!.Pressed += OnHotkeyPressed;
-        _logger.LogInformation("Registered new hotkey: {Shortcut}", _hotkey.Shortcut);
+        _logger.LogInformation("Registered new hotkey: {Shortcut}, IgnoreExtraModifiers: {IgnoreExtraModifiers}", _hotkey.Shortcut, ignoreExtraModifiers);
     }
 
     public void Dispose() => _hotkey?.Dispose();

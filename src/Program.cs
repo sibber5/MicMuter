@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -62,11 +63,12 @@ internal sealed class Program
         OnUnhandledException(e.Exception, "Unobserved task exception:");
     }
     
-    public static void OnUnhandledException(Exception ex, string? bodyInfo = null)
+    public static void OnUnhandledException<T>(T ex, string? bodyInfo = null) where T : Exception
     {
         Log.Fatal(ex, "Unhandled exception");
-        Debugger.BreakForUserUnhandledException(ex);
-        MessageBoxError($"{bodyInfo}{Environment.NewLine}{ex.Message}", "Unhandled Exception");
+        // Debugger.BreakForUserUnhandledException(ex);
+        Debugger.Break();
+        Dispatcher.UIThread.Invoke(() => MessageBoxError($"{bodyInfo}{Environment.NewLine}{ex.Message}", $"Unhandled Exception"));
     }
     
     private static int MessageBoxError(string text, string title) => MessageBox(nint.Zero, text, title, 0x000010u);

@@ -57,7 +57,12 @@ public class App(ServiceProvider services) : Application
         _logger = services.GetRequiredService<ILogger<App>>();
         
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-        desktop.Exit += (_, _) => services.Dispose();
+        desktop.Exit += (_, _) =>
+        {
+            // WindowMessageMonitor.Dispose() might get called after the window is freed, that's why RemoveWindowSubclass could fail here, but that's fine.
+            if (Dispatcher.UIThread.CheckAccess()) services.Dispose();
+            else Dispatcher.UIThread.Invoke(services.Dispose);
+        };
         
         LoadSettingsAsync(services.GetRequiredService<SettingsSerializer>());
         
@@ -78,36 +83,31 @@ public class App(ServiceProvider services) : Application
         catch (Exception ex)
         {
             _logger.LogError("Failed to load settings.");
-            Dispatcher.UIThread.Post(() =>
-            {
-                Program.OnUnhandledException(ex, "Unhandled exception while loading settings:");
-                ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
-            });
+            Program.OnUnhandledException(ex, "Unhandled exception while loading settings:");
+            Dispatcher.UIThread.Invoke(() => ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown(1));
         }
     }
     
-    // ReSharper disable once AsyncVoidMethod
     private async void OnSettingUpdateFailed(object? sender, ChangeFailReason e)
     {
-        switch (e)
+        try
         {
-            case ChangeFailReason.ElevatedPermissionsRequired:
-                try
-                {
+            switch (e)
+            {
+                case ChangeFailReason.ElevatedPermissionsRequired:
                     await PromptToRestartElevated();
-                }
-                catch (Exception ex)
-                {
-                    Dispatcher.UIThread.Post(() => Program.OnUnhandledException(ex));
-                }
-                break;
-            
-            case ChangeFailReason.UnhandledException:
-                Dispatcher.UIThread.Post(() => throw new InvalidOperationException("Unhandled exception while loading settings."));
-                break;
-            
-            default:
-                throw new NotImplementedException();
+                    break;
+                
+                case ChangeFailReason.UnhandledException:
+                    throw new InvalidOperationException("Unhandled exception while updating settings.");
+                
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+        catch (Exception ex)
+        {
+            Program.OnUnhandledException(ex);
         }
     }
     
