@@ -32,8 +32,10 @@ internal sealed class Program
         
         TaskScheduler.UnobservedTaskException += TaskScheduler_OnUnobservedTaskException;
         
+#if !DEBUG
         try
         {
+#endif
             ServiceCollection services = new();
             
             services.AddAppServices();
@@ -44,11 +46,13 @@ internal sealed class Program
             
             Log.Information("Starting application...");
             BuildAvaloniaApp(serviceProvider).StartWithClassicDesktopLifetime(args);
+#if !DEBUG
         }
         catch (Exception ex)
         {
             OnUnhandledException(ex);
         }
+#endif
     }
     
     // Avalonia configuration, don't remove; also used by visual designer.
@@ -68,7 +72,7 @@ internal sealed class Program
         Log.Fatal(ex, "Unhandled exception");
         // Debugger.BreakForUserUnhandledException(ex);
         Debugger.Break();
-        Dispatcher.UIThread.Invoke(() => MessageBoxError($"{bodyInfo}{Environment.NewLine}{ex.Message}", $"Unhandled Exception"));
+        Dispatcher.UIThread.Invoke(() => MessageBoxError($"{bodyInfo}{Environment.NewLine}{ex.Message}", $"Unhandled Exception - Please submit bug report"));
     }
     
     private static int MessageBoxError(string text, string title) => MessageBox(nint.Zero, text, title, 0x000010u);

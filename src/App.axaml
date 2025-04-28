@@ -16,6 +16,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <MergeResourceInclude Source="Icons.axaml" />
             </ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#10000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#14FFFFFF" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
     
@@ -28,6 +36,7 @@
                     <NativeMenu>
                         <NativeMenuItem Header="Settings" Click="SettingsMenuItem_OnClick" />
                         <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Report a bug" Click="ReportBugMenuItem_OnClick" />
                         <NativeMenuItem Header="About" Click="AboutMenuItem_OnClick" />
                         <NativeMenuItemSeparator />
                         <NativeMenuItem Header="Exit" Click="ExitMenuItem_OnClick" />

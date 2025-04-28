@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
 using MicMuter.Audio;
 using MicMuter.Hotkeys;
@@ -15,8 +14,6 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
 {
     public bool IsLoadingSettings { get; private set; }
     
-    private bool _loaded = false;
-
     private async void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         try
@@ -40,7 +37,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
 
     public async Task<Settings> Load()
     {
-        if (Interlocked.Exchange(ref _loaded, true)) throw new InvalidOperationException("Already loaded settings.");
+        // if (Interlocked.Exchange(ref _loaded, true)) throw new InvalidOperationException("Already loaded settings.");
         IsLoadingSettings = true;
         
         SettingsDto? dto = null;

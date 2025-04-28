@@ -3,10 +3,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:MicMuter"
+        xmlns:license="using:MicMuter.LicenseNotices"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MicMuter.AboutWindow"
         x:DataType="local:AboutWindow"
-        Width="450" Height="500"
+        MinWidth="485"
+        Width="485" Height="500"
         Title="About MicMuter">
     <Window.Styles>
         <Style Selector="StackPanel > :is(Control)">
@@ -35,6 +37,17 @@
                 <ItemsRepeater.Layout>
                     <StackLayout Orientation="Vertical" Spacing="10" />
                 </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="license:PackageLicenseInfo">
+                        <license:LicenseView PackageId="{Binding PackageId, Mode=OneTime}"
+                                             ProjectUrl="{Binding PackageProjectUrl, Mode=OneTime}"
+                                             PackageVersion="{Binding PackageVersion, Mode=OneTime}"
+                                             Author="{Binding Authors, Mode=OneTime}"
+                                             License="{Binding License, Mode=OneTime}"
+                                             CopyrightYears="{Binding Copyright.Years, Mode=OneTime}"
+                                             CopyrightHolders="{Binding Copyright.Holders, Mode=OneTime}"/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
             
         </StackPanel>

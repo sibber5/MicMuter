@@ -10,7 +10,7 @@ namespace MicMuter.LicenseNotices;
 
 public readonly partial record struct PackageLicenseInfoParser : IDisposable
 {
-    public IAsyncEnumerable<PackageLicenseInfo> ParseLicenseInfos()
+    public IAsyncEnumerable<PackageLicenseInfo?> ParseLicenseInfos()
         => JsonSerializer.DeserializeAsyncEnumerable(_jsonStream, PackageLicenseInfoContext.Default.PackageLicenseInfo);
     
     private readonly MemoryStream _jsonStream = new(PackageLicenseInfoJson);
@@ -195,6 +195,7 @@ public readonly partial record struct PackageLicenseInfoParser : IDisposable
                 "" => License.None,
                 "None" => License.None,
                 "MIT" => License.MIT,
+                "Apache-2.0" => License.Apache_2_0,
                 _ => throw new NotImplementedException()
             };
         

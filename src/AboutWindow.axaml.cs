@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using MicMuter.LicenseNotices;
 
@@ -21,13 +22,17 @@ public partial class AboutWindow : Window
     {
         try
         {
-            using PackageLicenseInfoParser parser = new();
-            List<LicenseView> licenseTexts = [];
-            await foreach (PackageLicenseInfo licenseInfo in parser.ParseLicenseInfos())
+            LicensesRepeater.ItemsSource = await Task.Run(async () =>
             {
-                licenseTexts.Add(LicenseView.FromPackageLicenseInfo(licenseInfo));
-            }
-            LicensesRepeater.ItemsSource = licenseTexts;
+                using PackageLicenseInfoParser parser = new();
+                List<PackageLicenseInfo> licenses = [];
+                await foreach (PackageLicenseInfo? licenseInfo in parser.ParseLicenseInfos())
+                {
+                    if (licenseInfo is null) continue;
+                    licenses.Add(licenseInfo);
+                }
+                return licenses;
+            });
         }
         catch (Exception ex)
         {

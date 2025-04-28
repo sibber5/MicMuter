@@ -4,7 +4,9 @@ using MicMuter;
 using MicMuter.AppSettings;
 using MicMuter.Audio;
 using MicMuter.Audio.Windows;
+#if DEBUG
 using MicMuter.DummyServices;
+#endif
 using MicMuter.Hotkeys;
 using MicMuter.Hotkeys.Windows;
 using MicMuter.MainWindow;

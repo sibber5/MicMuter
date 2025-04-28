@@ -11,24 +11,32 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="0"
         ShowInTaskbar="False"
-        WindowStartupLocation="CenterOwner"
-        CanResize="False">
-
-        <StackPanel Name="OuterStackPanel" Margin="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Spacing="20">
+        WindowStartupLocation="CenterOwner">
+    
+    <Grid RowDefinitions="25,20,*,20,Auto" Name="OuterGrid" Margin="20" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        
+        <Border Margin="-20,-20,-20,0" Background="{DynamicResource CardBackgroundBrush}" PointerPressed="CustomTitleBar_OnPointerPressed" PointerReleased="CustomTitleBar_OnPointerReleased" PointerMoved="CustomTitleBar_OnPointerMoved">
+            <TextBlock Text="{Binding Title, Mode=OneTime}" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0" />
+        </Border>
+        
+        <ScrollViewer Grid.Row="2" Margin="0,0,-20,0" Padding="0,0,20,0">
             <TextBlock Name="Text" Text="{Binding Message, Mode=OneTime}" TextWrapping="Wrap" />
-            <StackPanel Name="ButtonRow" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="5" Height="30">
-                <Button Click="AcceptButton_OnClick" IsVisible="{Binding AcceptText, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <Image Source="{Binding AcceptIcon, Mode=OneTime}" IsVisible="{Binding $self.Source, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" />
-                        <TextBlock Text="{Binding AcceptText, Mode=OneTime}" />
-                    </StackPanel>
-                </Button>
-                <Button Click="CancelButton_OnClick" IsVisible="{Binding CancelText, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
-                    <StackPanel Orientation="Horizontal" Spacing="5">
-                        <Image Source="{Binding CancelIcon, Mode=OneTime}" IsVisible="{Binding $self.Source, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" />
-                        <TextBlock Text="{Binding CancelText, Mode=OneTime}" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
+        </ScrollViewer>
+        
+        <StackPanel Grid.Row="4" Name="ButtonRow" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="5" Height="30">
+            <Button Click="AcceptButton_OnClick" IsVisible="{Binding AcceptText, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <Image Source="{Binding AcceptIcon, Mode=OneTime}" IsVisible="{Binding $self.Source, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" />
+                    <TextBlock Text="{Binding AcceptText, Mode=OneTime}" />
+                </StackPanel>
+            </Button>
+            <Button Click="CancelButton_OnClick" IsVisible="{Binding CancelText, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                    <Image Source="{Binding CancelIcon, Mode=OneTime}" IsVisible="{Binding $self.Source, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" />
+                    <TextBlock Text="{Binding CancelText, Mode=OneTime}" />
+                </StackPanel>
+            </Button>
         </StackPanel>
+        
+    </Grid>
 </Window>

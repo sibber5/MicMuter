@@ -13,10 +13,7 @@ public partial class MainWindow : Window
     private readonly MainWindowViewModel _vm;
     private bool _isEditingShortcut = false;
 
-    public MainWindow()
-    {
-        throw new UnreachableException();
-    }
+    public MainWindow() => throw new UnreachableException();
     
     public MainWindow(MainWindowViewModel vm)
     {

@@ -9,9 +9,9 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
-        Width="370" Height="222"
-        MinWidth="330" MinHeight="222">
-
+        Width="370" Height="242"
+        MinWidth="330" MinHeight="242">
+    
     <StackPanel Margin="20,20,20,20" Spacing="10">
         
         <c:Setting Text="Device">
@@ -30,7 +30,7 @@
                 </ComboBox>
             </c:Setting.Content>
         </c:Setting>
-
+        
         <c:Setting Text="Mute shortcut">
             <c:Setting.Content>
                 <Button Name="ShortcutButton"
@@ -49,7 +49,7 @@
                 <ToggleSwitch IsChecked="{Binding Settings.IgnoreExtraModifiers, Mode=TwoWay}"/>
             </c:Setting.Content>
         </c:Setting>
-
+        
         <c:Setting Text="Run on startup">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
@@ -64,13 +64,15 @@
                               IsEnabled="{Binding Settings.RunOnStartup}"/>
             </c:Setting.Content>
         </c:Setting>
-
+        
         <c:Setting Text="Start minimized to tray">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.StartMinimized, Mode=TwoWay}" />
             </c:Setting.Content>
         </c:Setting>
-
+        
+        <TextBlock Text="Report a bug or issue tray menu" FontStyle="Oblique" FontSize="12" />
+        
     </StackPanel>
-
+    
 </Window>

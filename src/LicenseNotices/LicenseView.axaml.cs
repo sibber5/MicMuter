@@ -1,9 +1,15 @@
 ﻿using System;
 using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
+using Avalonia.VisualTree;
+using MicMuter.Dialogs;
 
 namespace MicMuter.LicenseNotices;
 
+[TemplatePart("PART_ViewLicenseButton", typeof(Button))]
 public class LicenseView : TemplatedControl
 {
     public static readonly StyledProperty<string> PackageIdProperty = AvaloniaProperty.Register<LicenseView, string>(nameof(PackageId));
@@ -41,13 +47,13 @@ public class LicenseView : TemplatedControl
         set => SetValue(LicenseProperty, value);
     }
     
-    public static readonly StyledProperty<string> YearProperty = AvaloniaProperty.Register<LicenseView, string>(nameof(Year));
-    public string Year
+    public static readonly StyledProperty<string> CopyrightYearsProperty = AvaloniaProperty.Register<LicenseView, string>(nameof(CopyrightYears));
+    public string CopyrightYears
     {
-        get => GetValue(YearProperty);
-        set => SetValue(YearProperty, value);
+        get => GetValue(CopyrightYearsProperty);
+        set => SetValue(CopyrightYearsProperty, value);
     }
-
+    
     public static readonly StyledProperty<string> CopyrightHoldersProperty = AvaloniaProperty.Register<LicenseView, string>(nameof(CopyrightHolders));
     public string CopyrightHolders
     {
@@ -55,15 +61,32 @@ public class LicenseView : TemplatedControl
         set => SetValue(CopyrightHoldersProperty, value);
     }
     
-    public static LicenseView FromPackageLicenseInfo(PackageLicenseInfo licenseInfo)
-        => new()
-        {
-            PackageId = licenseInfo.PackageId,
-            ProjectUrl = licenseInfo.PackageProjectUrl,
-            PackageVersion = licenseInfo.PackageVersion,
-            Author = licenseInfo.Authors,
-            License = licenseInfo.License,
-            Year = licenseInfo.Copyright.Years,
-            CopyrightHolders = licenseInfo.Copyright.Holders,
-        };
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+        var viewLicenseButton = e.NameScope.Find<Button>("PART_ViewLicenseButton");
+        viewLicenseButton!.Click += ViewLicense_OnClick;
+    }
+    
+    private string? _licenseText;
+    
+    private void ViewLicense_OnClick(object? sender, RoutedEventArgs e)
+    {
+        new DialogWindow(
+                $"{PackageId} {PackageVersion} License", 
+                _licenseText ??= License switch
+                {
+                    License.None => $"Copyright (c) {CopyrightYears} {CopyrightHolders}",
+                    License.MIT => LicenseTemplates.MIT(CopyrightYears, CopyrightHolders),
+                    License.Apache_2_0 => LicenseTemplates.Apache_2_0(CopyrightYears, CopyrightHolders),
+                    _ => throw new NotImplementedException()
+                }, 
+                null, 
+                "Close",
+                width: 600,
+                height: 700,
+                canResize: true,
+                monospace: true)
+            .ShowDialog((Window)this.GetVisualRoot()!);
+    }
 }

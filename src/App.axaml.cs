@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -19,9 +21,11 @@ namespace MicMuter;
 
 public class App(ServiceProvider services) : Application
 {
-    private Window _mainWindow = null!;
+    public App() : this(null!) => throw new UnreachableException();
     
     private ILogger<App> _logger = null!;
+    private Window _mainWindow = null!;
+    private Window? _aboutWindow;
     
     private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
     {
@@ -30,9 +34,61 @@ public class App(ServiceProvider services) : Application
         _mainWindow.Activate();
     }
     
+    private async void ReportBugMenuItem_OnClick(object? sender, EventArgs e)
+    {
+        string logArchiveName = $"MicMuter_Logs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.zip";
+        bool createdArchive = false;
+        
+        try
+        {
+            await Task.Run(() => CreateLogArchive(logArchiveName));
+            createdArchive = true;
+        }
+        catch (Exception ex)
+        {
+            new DialogWindow(ex.Message, @"Failed to create log archive. Please upload logs manually from %AppData%\MicMuter\Logs", null, "Ok").Show();
+        }
+        
+        if (createdArchive)
+        {
+            new DialogWindow("Log archive", $"Log archive {logArchiveName} created on Desktop.{Environment.NewLine}{Environment.NewLine}Please attach to the bug report.", null, "Ok").Show();
+        }
+        
+        try
+        {
+            Process.Start(new ProcessStartInfo("https://github.com/sibber5/MicMuter/issues/new/choose") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            Program.OnUnhandledException(ex);
+        }
+        
+        static void CreateLogArchive(string name)
+        {
+            string tempDir = Path.Join(Path.GetTempPath(), $"/MicMuterLogs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
+            Directory.CreateDirectory(tempDir);
+            
+            foreach (string file in Directory.GetFiles(Paths.LogDir))
+            {
+                string dest = Path.Join(tempDir, $"/{Path.GetFileName(file)}");
+                File.Copy(file, dest);
+            }
+            
+            ZipFile.CreateFromDirectory(tempDir, Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"/{name}"));
+            Directory.Delete(tempDir, true);
+        }
+    }
+    
     private void AboutMenuItem_OnClick(object? sender, EventArgs e)
     {
-        new AboutWindow().Show();
+        if (_aboutWindow is null)
+        {
+            _aboutWindow = new AboutWindow();
+            _aboutWindow.Closed += (_, _) => _aboutWindow = null;
+        }
+        _aboutWindow.Show();
+        _aboutWindow.WindowState = WindowState.Normal;
+        _aboutWindow.Activate();
     }
     
     private void ExitMenuItem_OnClick(object? sender, EventArgs e)
@@ -45,7 +101,7 @@ public class App(ServiceProvider services) : Application
         DataContext = services.GetRequiredService<TrayIconViewModel>();
         AvaloniaXamlLoader.Load(this);
     }
-
+    
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) throw new NotSupportedException();
@@ -82,9 +138,20 @@ public class App(ServiceProvider services) : Application
         }
         catch (Exception ex)
         {
-            _logger.LogError("Failed to load settings.");
-            Program.OnUnhandledException(ex, "Unhandled exception while loading settings:");
-            Dispatcher.UIThread.Invoke(() => ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown(1));
+            _logger.LogError(ex, "Failed to load settings.");
+            new DialogWindow("MiMuter - Error", "Failed to load settings.", null, "Ok").Show();
+            // instead of shutting down, just show the error dialog and load again without the settings file in order to load the defaults.
+            try
+            {
+                File.Delete(Paths.SaveFilePath);
+                var settings = await settingsSerializer.Load();
+                if (!settings.StartMinimized) Dispatcher.UIThread.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+            }
+            catch (Exception ex2)
+            {
+                Program.OnUnhandledException(ex2);
+                Dispatcher.UIThread.Invoke(() => ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown(1));
+            }
         }
     }
     
