@@ -2,3 +2,4 @@ update:
 ./src/MicMuter.csproj
 ./src/app.manifest
 BUG-REPORT.yml
+package_manifests/

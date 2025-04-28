@@ -40,6 +40,7 @@ body:
       label: MicMuter Version
       description: What version of MicMuter were you running? (Hover cursor over tray icon to see)
       options:
+        - 2.1.0
         - 2.0.0
         - 1.2.0
         - 1.1.0
@@ -88,6 +89,7 @@ body:
       description: Attatch logs, screenshots, other relevant files, etc.
       placeholder: |
         Running as admin
-        .Net version
+        .NET version
+        etc.
     validations:
       required: false
