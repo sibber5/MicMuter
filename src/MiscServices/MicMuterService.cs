@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using Avalonia.Input;
 using Avalonia.Platform;
 using MicMuter.AppSettings;
 using MicMuter.Audio;
@@ -32,7 +31,8 @@ internal sealed class MicMuterService : IDisposable
 
             if (_mic is null)
             {
-                _mic = value!;
+                ArgumentNullException.ThrowIfNull(value);
+                _mic = value;
                 _mic.MuteStatusChanged += MicOnMuteStatusChanged;
                 MuteStatusChanged?.Invoke(this, _mic.IsMuted);
                 return;

@@ -71,7 +71,7 @@
             </c:Setting.Content>
         </c:Setting>
         
-        <TextBlock Text="Report a bug or issue tray menu" FontStyle="Oblique" FontSize="12" />
+        <TextBlock Text="Report a bug or issue from the tray menu" FontStyle="Oblique" FontSize="12" />
         
     </StackPanel>
     

@@ -72,7 +72,7 @@ public class LicenseView : TemplatedControl
     
     private void ViewLicense_OnClick(object? sender, RoutedEventArgs e)
     {
-        new DialogWindow(
+        var dialog = new DialogWindow(
                 $"{PackageId} {PackageVersion} License", 
                 _licenseText ??= License switch
                 {
@@ -80,13 +80,14 @@ public class LicenseView : TemplatedControl
                     License.MIT => LicenseTemplates.MIT(CopyrightYears, CopyrightHolders),
                     License.Apache_2_0 => LicenseTemplates.Apache_2_0(CopyrightYears, CopyrightHolders),
                     _ => throw new NotImplementedException()
-                }, 
-                null, 
+                },
                 "Close",
                 width: 600,
                 height: 700,
                 canResize: true,
-                monospace: true)
-            .ShowDialog((Window)this.GetVisualRoot()!);
+                monospace: true);
+        
+        if (this.GetVisualRoot() is Window window) dialog.ShowDialog(window);
+        else dialog.Show();
     }
 }

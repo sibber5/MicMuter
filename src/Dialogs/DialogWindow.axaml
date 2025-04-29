@@ -24,7 +24,7 @@
         </ScrollViewer>
         
         <StackPanel Grid.Row="4" Name="ButtonRow" HorizontalAlignment="Right" Orientation="Horizontal" Spacing="5" Height="30">
-            <Button Click="AcceptButton_OnClick" IsVisible="{Binding AcceptText, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
+            <Button Click="AcceptButton_OnClick" MinWidth="80" VerticalAlignment="Stretch" VerticalContentAlignment="Center" HorizontalContentAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="5">
                     <Image Source="{Binding AcceptIcon, Mode=OneTime}" IsVisible="{Binding $self.Source, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}" />
                     <TextBlock Text="{Binding AcceptText, Mode=OneTime}" />

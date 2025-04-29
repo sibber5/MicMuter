@@ -24,7 +24,7 @@ internal static class ServiceCollectionExtensions
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.WithThreadId()
-#if DEBUG
+#if !DEBUG
             .WriteTo.File(Paths.LogPath, restrictedToMinimumLevel: LogEventLevel.Information, rollingInterval: RollingInterval.Day, retainedFileCountLimit: 14, rollOnFileSizeLimit: true, buffered: false,
                 outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [Thread {ThreadId}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
 #endif

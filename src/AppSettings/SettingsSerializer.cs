@@ -22,7 +22,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         }
         catch (Exception ex)
         {
-            logger.LogError("Error serializing settings, Exception: {Exception}", ex);
+            logger.LogError(ex, "Error serializing settings");
             Program.OnUnhandledException(ex);
         }
     }
@@ -32,7 +32,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         Directory.CreateDirectory(Paths.SaveFileDir);
         await using FileStream createStream = File.Create(Paths.SaveFilePath);
         await JsonSerializer.SerializeAsync(createStream, settings.ToSettingsDto(), SourceGenerationContext.Default.SettingsDto);
-        logger.LogInformation("Successfully Saved settings.");
+        logger.LogInformation("Successfully Saved settings");
     }
 
     public async Task<Settings> Load()
@@ -49,14 +49,14 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         }
         catch (FileNotFoundException)
         {
-            logger.LogWarning("Settings file not found.");
+            logger.LogWarning("Settings file not found");
         }
         
         dto.LoadInto(settings, micDeviceManager);
         
         settings.PropertyChanged += Settings_OnPropertyChanged;
         
-        logger.LogInformation("Successfully loaded settings.");
+        logger.LogInformation("Successfully loaded settings");
         
         IsLoadingSettings = false;
         return settings;

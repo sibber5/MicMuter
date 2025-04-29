@@ -37,21 +37,25 @@ public class App(ServiceProvider services) : Application
     private async void ReportBugMenuItem_OnClick(object? sender, EventArgs e)
     {
         string logArchiveName = $"MicMuter_Logs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.zip";
-        bool createdArchive = false;
-        
-        try
+
+        if (Directory.Exists(Paths.LogDir))
         {
-            await Task.Run(() => CreateLogArchive(logArchiveName));
-            createdArchive = true;
-        }
-        catch (Exception ex)
-        {
-            new DialogWindow(ex.Message, @"Failed to create log archive. Please upload logs manually from %AppData%\MicMuter\Logs", null, "Ok").Show();
-        }
-        
-        if (createdArchive)
-        {
-            new DialogWindow("Log archive", $"Log archive {logArchiveName} created on Desktop.{Environment.NewLine}{Environment.NewLine}Please attach to the bug report.", null, "Ok").Show();
+            try
+            {
+                await Task.Run(() => CreateLogArchive(logArchiveName));
+                new DialogWindow("Log archive",
+                    $"Log archive {logArchiveName} created on Desktop.{Environment.NewLine}{Environment.NewLine}Please attach to the bug report.",
+                    "Ok")
+                    .Show();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create log archive");
+                new DialogWindow($"Error - {ex.GetType().Name}", 
+                    @"Failed to create log archive. Please upload logs manually from %AppData%\MicMuter\Logs", 
+                    "Ok")
+                    .Show();
+            }
         }
         
         try
@@ -65,10 +69,13 @@ public class App(ServiceProvider services) : Application
         
         static void CreateLogArchive(string name)
         {
+            var logFiles = Directory.GetFiles(Paths.LogDir);
+            if (logFiles.Length == 0) return;
+            
             string tempDir = Path.Join(Path.GetTempPath(), $"/MicMuterLogs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
             Directory.CreateDirectory(tempDir);
             
-            foreach (string file in Directory.GetFiles(Paths.LogDir))
+            foreach (string file in logFiles)
             {
                 string dest = Path.Join(tempDir, $"/{Path.GetFileName(file)}");
                 File.Copy(file, dest);
@@ -138,8 +145,8 @@ public class App(ServiceProvider services) : Application
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load settings.");
-            new DialogWindow("MiMuter - Error", "Failed to load settings.", null, "Ok").Show();
+            _logger.LogError(ex, "Failed to load settings");
+            new DialogWindow("MiMuter - Error", "Failed to load settings.", "Ok").Show();
             // instead of shutting down, just show the error dialog and load again without the settings file in order to load the defaults.
             try
             {
@@ -216,7 +223,7 @@ public class App(ServiceProvider services) : Application
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223) // The operation (UAC prompt in this case) was canceled by the user.
         {
-            await new DialogWindow("Error", "The operation was canceled by the user.", null, "Ok").ShowDialog(_mainWindow);
+            await new DialogWindow("Error", "The operation was canceled by the user.", "Ok").ShowDialog(_mainWindow);
         }
         
         #else

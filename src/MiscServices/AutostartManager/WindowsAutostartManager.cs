@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Microsoft.Win32.TaskScheduler;
@@ -75,7 +73,7 @@ internal sealed class WindowsAutostartManager(ILogger<WindowsAutostartManager> l
             }
             else
             {
-                logger.LogInformation("Startup task already exists.");
+                logger.LogInformation("Startup task already exists");
             }
             
             task.Enabled = true;

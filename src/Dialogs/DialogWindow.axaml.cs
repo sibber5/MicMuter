@@ -12,13 +12,13 @@ public partial class DialogWindow : Window
 {
     public string Message { get; }
     public IImage? AcceptIcon { get; }
-    public string? AcceptText { get; }
+    public string AcceptText { get; }
     public IImage? CancelIcon { get; }
     public string? CancelText { get; }
     
     public DialogWindow() => throw new NotSupportedException();
     
-    public DialogWindow(string title, string message, string? acceptText, string? cancelText, IImage? acceptIcon = null, IImage? cancelIcon = null, double width = 350, double height = -1, bool canResize = false, bool monospace = false)
+    public DialogWindow(string title, string message, string acceptText, string? cancelText = null, IImage? acceptIcon = null, IImage? cancelIcon = null, double width = 350, double height = -1, bool canResize = false, bool monospace = false)
     {
         DataContext = this;
         Title = title;
@@ -44,7 +44,7 @@ public partial class DialogWindow : Window
         var textHeight = Helpers.GetRenderedTextDimensions(Text.Text!, Text.FontFamily, Text.FontSize, Width - OuterGrid.Margin.Left - OuterGrid.Margin.Right).Height;
         return 1 + textHeight + OuterGrid.Margin.Top + OuterGrid.Margin.Bottom + OuterGrid.RowDefinitions.Where(x => x.Height is { IsAuto: false, IsStar: false }).Sum(x => x.Height.Value) + ButtonRow.Height;
     }
-
+    
     private void AcceptButton_OnClick(object? sender, RoutedEventArgs e)
     {
         Close(DialogResult.Accept);
