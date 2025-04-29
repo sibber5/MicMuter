@@ -25,6 +25,11 @@ Mute your microphone from anywhere with a global keyboard shortcut, and show the
 ### From GitHub
 [In the releases page](https://github.com/sibber5/MicMuter/releases/latest)
 
+### From WinGet
+```
+winget install sibber.MicMuter
+```
+
 ## Libraries Used
 - [Avalonia](https://github.com/AvaloniaUI/Avalonia)
 - [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet)
