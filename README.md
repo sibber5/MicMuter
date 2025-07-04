@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="readme_assets/icon.ico?raw=true" height="28">
+  <img src="readme_assets/icon.png?raw=true" height="28">
   <span>MicMuter</span>
 </h1>
 
