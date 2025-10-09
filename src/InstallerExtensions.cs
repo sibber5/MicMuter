@@ -13,7 +13,7 @@ internal static class InstallerExtensions
     public static VelopackApp ConfigureInstaller(this VelopackApp app)
     {
         // IMPORTANT: This callback is only supported on Windows.
-        app.WithBeforeUninstallFastCallback(v =>
+        app.OnBeforeUninstallFastCallback(v =>
         {
             ProcessStartInfo info = new()
             {

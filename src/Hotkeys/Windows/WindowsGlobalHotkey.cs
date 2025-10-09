@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using MicMuter.NativeMisc.Windows;
 using Microsoft.Extensions.Logging;
+using Sibber.Common.Native.Windows.Windowing;
+using Sibber.WindowMessageMonitor;
 
 namespace MicMuter.Hotkeys.Windows;
 
@@ -13,7 +14,7 @@ internal sealed class WindowsGlobalHotkey : IGlobalHotkey
 
     public bool IgnoresExtraModifiers => false;
 
-    private readonly nint _hWnd;
+    private readonly HWnd _hWnd;
     private readonly int _id;
     private readonly WindowMessageMonitor _monitor;
 
@@ -21,7 +22,7 @@ internal sealed class WindowsGlobalHotkey : IGlobalHotkey
     
     private readonly ILogger<WindowsGlobalHotkey> _logger;
     
-    internal WindowsGlobalHotkey(Shortcut shortcut, nint hWnd, int id, ILogger<WindowsGlobalHotkey> logger)
+    internal WindowsGlobalHotkey(Shortcut shortcut, HWnd hWnd, int id, ILogger<WindowsGlobalHotkey> logger)
     {
         _logger = logger;
         
@@ -30,10 +31,9 @@ internal sealed class WindowsGlobalHotkey : IGlobalHotkey
         _hWnd = hWnd;
         _id = id;
         _monitor = new(_hWnd);
-        _monitor.WindowMessageReceived += (_, e) =>
+        _monitor.WindowMessageReceived += (object _, ref WindowMessageEventArgs e) =>
         {
-            //                         WM_HOTKEY
-            if (e.Message.MessageId == 0x0312 && unchecked((int)e.Message.WParam) == _id)
+            if (e.Message.Message == WindowMessage.HotKey && unchecked((int)e.Message.WParam) == _id)
             {
                 _logger.LogDebug("Triggered {Shortcut} with id {Id}", Shortcut, _id);
                 Pressed?.Invoke(this, EventArgs.Empty);

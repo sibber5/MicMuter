@@ -5,13 +5,16 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia.Input;
+using Sibber.Common.Native.Windows.Windowing;
 
 namespace MicMuter.Hotkeys.Windows;
 
 internal sealed class WindowsGlobalHotkeyFactory : IGlobalHotkeyFactory
 {
-    public IGlobalHotkey Register(Shortcut shortcut, bool ignoreExtraModifiers, nint hWnd)
+    public IGlobalHotkey Register(Shortcut shortcut, bool ignoreExtraModifiers, nint rawHWnd)
     {
+        var hWnd = (HWnd)rawHWnd;
+
         if (!ignoreExtraModifiers) return WindowsHotkeyFactoryImpl.Register(shortcut, hWnd);
 
         if (shortcut.Modifiers.HasFlag(KeyModifiers.Meta)) throw new NotSupportedException();
@@ -23,10 +26,10 @@ internal sealed class WindowsGlobalHotkeyFactory : IGlobalHotkeyFactory
         IGlobalHotkey[] hotkeys;
         if (shortcut.Modifiers == KeyModifiers.None)
         {
-            const int optionCount = 8; // 2^3
-            hotkeys = new IGlobalHotkey[optionCount];
+            const int OptionCount = 8; // 2^3
+            hotkeys = new IGlobalHotkey[OptionCount];
             // register every possible modifier key combination
-            for (int i = 0; i < optionCount; i++)
+            for (int i = 0; i < OptionCount; i++)
             {
                 hotkeys[i] = WindowsHotkeyFactoryImpl.Register(shortcut with { Modifiers = (KeyModifiers)i }, hWnd);
             }
@@ -76,7 +79,7 @@ file static class WindowsHotkeyFactoryImpl
     private static readonly Lock _lock = new();
 
     /// <remarks>This method is thread-safe.</remarks>
-    public static WindowsGlobalHotkey Register(Shortcut shortcut, nint hWnd)
+    public static WindowsGlobalHotkey Register(Shortcut shortcut, HWnd hWnd)
     {
         if (Interlocked.Increment(ref _lastId) >= 0xBFFF) throw new InvalidOperationException("Max number of hotkeys exceeded.");
 
@@ -112,7 +115,7 @@ file static class WindowsHotkeyFactoryImpl
 
         return hotkey;
 
-        static WindowsGlobalHotkey CreateValue(Shortcut shortcut, nint hWnd, int id)
+        static WindowsGlobalHotkey CreateValue(Shortcut shortcut, HWnd hWnd, int id)
         {
             uint modifiers = 0x4000;
             if (shortcut.Modifiers.HasFlag(KeyModifiers.Alt)) modifiers |= 0x0001;
