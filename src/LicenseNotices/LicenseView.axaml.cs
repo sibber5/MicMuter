@@ -79,6 +79,7 @@ public class LicenseView : TemplatedControl
                     License.None => $"Copyright (c) {CopyrightYears} {CopyrightHolders}",
                     License.MIT => LicenseTemplates.MIT(CopyrightYears, CopyrightHolders),
                     License.Apache_2_0 => LicenseTemplates.Apache_2_0(CopyrightYears, CopyrightHolders),
+                    License.BSD_3_Clause => LicenseTemplates.BSD_3_Clause(CopyrightYears, CopyrightHolders),
                     _ => throw new NotImplementedException()
                 },
                 "Close",
