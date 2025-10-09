@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 .idea/
 publish_installer/
+package_manifests/
