@@ -68,7 +68,7 @@ body:
       label: OS (Build) Version
       description: If linux, include distro and DE
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: installed-from
