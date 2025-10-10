@@ -29,6 +29,9 @@ public sealed partial class Settings(IAutostartManager autostartManager, IElevat
     [ObservableProperty]
     private SfxSelection _unmuteSfx = SfxSelection.DefaultUnmute;
 
+    [ObservableProperty]
+    private double _sfxVolume = 50.0;
+
     private bool _runOnStartup;
     public bool RunOnStartup
     {

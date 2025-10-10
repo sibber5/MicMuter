@@ -9,8 +9,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/icon_unmuted.ico"
         Title="MicMuter"
-        Width="370" Height="242"
-        MinWidth="330" MinHeight="242">
+        Width="370" Height="392"
+        MinWidth="330" MinHeight="392">
 
     <StackPanel Margin="20,20,20,20" Spacing="10">
 
@@ -65,6 +65,14 @@
                           SelectionChanged="SfxCombobox_OnSelectionChanged"/>
             </c:Setting.Content>
         </c:Setting>
+
+        <c:Setting Text="Sound effect volume">
+            <c:Setting.Content>
+                <c:NumberBoxSlider Width="200" Minimum="0" Maximum="100" Value="{Binding Settings.SfxVolume, Mode=TwoWay}"/>
+            </c:Setting.Content>
+        </c:Setting>
+
+        <Separator/>
 
         <c:Setting Text="Run on startup">
             <c:Setting.Content>

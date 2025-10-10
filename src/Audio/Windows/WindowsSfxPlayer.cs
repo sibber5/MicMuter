@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Platform;
@@ -12,76 +9,51 @@ using NAudio.Wave.SampleProviders;
 
 namespace MicMuter.Audio.Windows;
 
-/// <summary>
-/// Manages loading, caching, and low-latency playback of a single sound effect.
-/// It uses a long-lived WasapiOut instance and a mixer to play sounds with minimal latency and garbage collection,
-/// making it ideal for frequent playback. Audio is resampled and cached in a uniform format on load.
-/// This version uses an object pool for its sample providers to achieve zero allocations in the Play() method.
-/// </summary>
+/// <remarks>
+/// If <see cref="Play"/> is called while a sound is already playing, the sound will restart from the beginning.
+/// This class is highly optimized for frequent, low-latency playback.
+/// </remarks>
 public sealed class WindowsSfxPlayer : ISfxPlayer, IDisposable
 {
-    // Optimization: The audio data is now cached as decoded float samples in the mixer's format.
-    // This avoids all on-the-fly conversion during playback.
-    private float[]? _cachedAudioSamples;
-    private WaveFormat? _cachedWaveFormat; // This will be the format of the mixer
-    private bool _isDisposed;
-
-    // Optimization: A single output device and mixer are created and kept alive.
-    // This opens the audio device once, keeping it ready for immediate playback and
-    // eliminating the overhead of device initialization on every Play() call.
     private readonly WasapiOut _outputDevice;
-    private readonly MixingSampleProvider _mixer;
+    private readonly SingleSoundSampleProvider _soundProvider;
+    private readonly VolumeSampleProvider _volumeProvider;
 
-    // Optimization: An object pool for the sample providers to avoid allocations on Play().
-    private readonly ConcurrentBag<PooledCachedSoundSampleProvider> _providerPool = [];
+    private bool _disposed;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="WindowsSfxPlayer"/> class.
-    /// Sets up the audio playback pipeline.
-    /// </summary>
+    public double Volume
+    {
+        get => _volumeProvider.Volume / 2.0;
+        set => _volumeProvider.Volume = (float)double.Clamp(value * 2, 0.0, 2.0); // map 0-1 to 0-2 to allow amplification.
+    }
+
     public WindowsSfxPlayer()
     {
-        // The mixer format determines the final output format. We choose a standard high-quality format.
-        var mixerFormat = WaveFormat.CreateIeeeFloatWaveFormat(44100, 2); // Stereo, 44.1kHz
-        _mixer = new MixingSampleProvider(mixerFormat)
-        {
-            ReadFully = true, // Ensures the mixer continues to provide data even when no sounds are playing.
-        };
+        var outputFormat = WaveFormat.CreateIeeeFloatWaveFormat(44100, 2);
 
-        // We use a reasonably low latency. 50ms is a good starting point.
+        _soundProvider = new(outputFormat);
+        _volumeProvider = new(_soundProvider) { Volume = 1f };
+
         _outputDevice = new WasapiOut(AudioClientShareMode.Shared, 50);
-        _outputDevice.Init(_mixer);
+        _outputDevice.Init(_volumeProvider);
         _outputDevice.Play();
     }
 
     public void Unload()
     {
-        _cachedAudioSamples = null;
-        _cachedWaveFormat = null;
+        _soundProvider.SetAudioSource(null);
     }
 
-    /// <summary>
-    /// Asynchronously loads a sound effect from a specified file path (.wav or .mp3).
-    /// The decoded PCM audio data is cached in memory for efficient, repeated playback.
-    /// </summary>
-    /// <param name="filePath">The absolute path to the audio file.</param>
-    /// <exception cref="FileNotFoundException">Thrown if the audio file does not exist.</exception>
-    /// <exception cref="InvalidOperationException">Thrown for unsupported file formats.</exception>
     public async Task LoadFromFile(string filePath)
     {
         // Use a CancellationToken to gracefully handle disposal while loading.
         using var cts = new CancellationTokenSource();
-        if (_isDisposed) return;
+        if (_disposed) return;
 
         await using var fileStream = File.OpenRead(filePath);
-        await LoadFromStream(fileStream, Path.GetExtension(filePath), cts.Token);
+        await LoadFromStreamAsync(fileStream, Path.GetExtension(filePath), cts.Token);
     }
 
-    /// <summary>
-    /// Asynchronously loads a sound effect from an embedded Avalonia resource URI.
-    /// The decoded PCM audio data is cached in memory for efficient, repeated playback.
-    /// Example URI: "avares://YourAppName/Assets/Sounds/effect.wav"
-    /// </summary>
     /// <param name="resourceUri">The Avalonia resource URI.</param>
     /// <exception cref="ArgumentException">Thrown if the resource does not exist.</exception>
     /// <exception cref="InvalidOperationException">Thrown for unsupported file formats.</exception>
@@ -89,12 +61,12 @@ public sealed class WindowsSfxPlayer : ISfxPlayer, IDisposable
     {
         // Use a CancellationToken to gracefully handle disposal while loading.
         using var cts = new CancellationTokenSource();
-        if (_isDisposed) return;
+        if (_disposed) return;
 
         try
         {
             await using var resourceStream = AssetLoader.Open(resourceUri);
-            await LoadFromStream(resourceStream, Path.GetExtension(resourceUri.AbsolutePath), cts.Token);
+            await LoadFromStreamAsync(resourceStream, Path.GetExtension(resourceUri.AbsolutePath), cts.Token);
         }
         catch (Exception ex) // AssetLoader can throw various exceptions on failure
         {
@@ -102,141 +74,149 @@ public sealed class WindowsSfxPlayer : ISfxPlayer, IDisposable
         }
     }
 
-    private async Task LoadFromStream(Stream sourceStream, string fileExtension, CancellationToken cancellationToken)
+    private async Task LoadFromStreamAsync(Stream sourceStream, string audioFormat, CancellationToken cancellationToken)
     {
         await using var memoryStream = new MemoryStream();
         await sourceStream.CopyToAsync(memoryStream, cancellationToken);
         memoryStream.Position = 0;
 
-        await using var reader = CreateReader(memoryStream, fileExtension);
+        await using var reader = CreateReader(memoryStream, audioFormat);
 
-        // The audio is converted to the mixer's format and stored as float samples.
-        // This pre-processing means the Play() method does zero conversion work.
-        _cachedWaveFormat = _mixer.WaveFormat;
-        var resampler = new WdlResamplingSampleProvider(reader.ToSampleProvider(), _cachedWaveFormat.SampleRate);
+        // The audio is converted to the output device's format and stored as float samples.
+        var resampler = new WdlResamplingSampleProvider(reader.ToSampleProvider(), _soundProvider.WaveFormat.SampleRate);
 
         // Handle channel differences
         ISampleProvider finalProvider = resampler.WaveFormat.Channels switch
         {
-            1 when _cachedWaveFormat.Channels == 2 => new MonoToStereoSampleProvider(resampler),
-            2 when _cachedWaveFormat.Channels == 1 => new StereoToMonoSampleProvider(resampler),
+            1 when _soundProvider.WaveFormat.Channels == 2 => new MonoToStereoSampleProvider(resampler),
+            2 when _soundProvider.WaveFormat.Channels == 1 => new StereoToMonoSampleProvider(resampler),
             _ => resampler,
         };
 
-        // Read all audio data into a buffer
-        var allSamples = new List<float>((int)(reader.Length / 4));
-        var readBuffer = new float[finalProvider.WaveFormat.SampleRate * finalProvider.WaveFormat.Channels];
+        // Read from the provider chain directly into our final buffer.
+        var samplesCount = (long)(reader.TotalTime.TotalSeconds * finalProvider.WaveFormat.SampleRate) * finalProvider.WaveFormat.Channels;
+        var samples = new float[samplesCount];
+
+        int position = 0;
         int samplesRead;
-        while ((samplesRead = finalProvider.Read(readBuffer, 0, readBuffer.Length)) > 0)
+        while ((samplesRead = finalProvider.Read(samples, position, samples.Length - position)) > 0)
         {
-            allSamples.AddRange(readBuffer.Take(samplesRead));
+            position += samplesRead;
         }
 
-        _cachedAudioSamples = allSamples.ToArray();
+        _soundProvider.SetAudioSource(samples);
     }
 
-    private static WaveStream CreateReader(Stream sourceStream, string fileExtension)
+    private static WaveStream CreateReader(Stream sourceStream, string audioFormat)
     {
-        return fileExtension.ToLowerInvariant() switch
+        if (".wav".Equals(audioFormat, StringComparison.OrdinalIgnoreCase))
         {
-            ".wav" => new WaveFileReader(sourceStream),
-            // ".mp3" => new Mp3FileReader(sourceStream),
-            _ => throw new InvalidOperationException($"Unsupported audio file format: {fileExtension}"),
-        };
+            return new WaveFileReader(sourceStream);
+        }
+
+        throw new NotSupportedException($"Unsupported audio file format: {audioFormat}");
     }
 
     /// <summary>
-    /// Plays the cached sound effect. This method is optimized for low latency and can be called frequently.
-    /// If another sound is already playing from a previous call, this will start a new playback that overlaps.
-    /// This method is allocation-free (amortized).
+    /// Plays the cached sound effect from the beginning. If the sound is already playing, it will be restarted.
     /// </summary>
     public void Play()
     {
-        if (_isDisposed)
-        {
-            throw new ObjectDisposedException(nameof(WindowsSfxPlayer));
-        }
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Correctness: Check if audio has been loaded.
-        if (_cachedAudioSamples == null || _cachedWaveFormat == null)
-        {
-            return;
-        }
+        _soundProvider.RestartPlayback();
+    }
 
-        // Object Pooling: Try to reuse a provider from the pool.
-        if (!_providerPool.TryTake(out var provider))
-        {
-            // If the pool is empty, create a new provider. The pool will grow as needed.
-            provider = new PooledCachedSoundSampleProvider(_providerPool);
-        }
+    /// <summary>
+    /// Stops the currently playing sound effect and resets its position to the beginning.
+    /// </summary>
+    public void Stop()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        // Initialize the provider with the current sound and add it to the mixer.
-        provider.Initialize(_cachedAudioSamples, _cachedWaveFormat);
-        _mixer.AddMixerInput(provider);
+        _soundProvider.StopPlayback();
     }
 
     public void Dispose()
     {
-        if (_isDisposed) return;
-        _isDisposed = true;
+        if (_disposed) return;
+        _disposed = true;
 
-        // Cleanly shut down the audio device.
         _outputDevice.Stop();
         _outputDevice.Dispose();
 
-        // Clear the pool.
-        while (_providerPool.TryTake(out _)) { }
-
-        Unload();
+        _soundProvider.SetAudioSource(null);
     }
 
-    /// <summary>
-    /// A lightweight, reusable, forward-only ISampleProvider that reads from a cached float array.
-    /// When it finishes reading, it automatically returns itself to an object pool.
-    /// </summary>
-    private sealed class PooledCachedSoundSampleProvider(ConcurrentBag<PooledCachedSoundSampleProvider> pool) : ISampleProvider
+    private sealed class SingleSoundSampleProvider(WaveFormat waveFormat) : ISampleProvider
     {
         private float[]? _sourceSamples;
         private int _position;
+        private bool _isPlaying;
+        private readonly Lock _lockObject = new();
 
-        // Start with a dummy format; it will be replaced by Initialize.
-        public WaveFormat WaveFormat { get; private set; } = WaveFormat.CreateIeeeFloatWaveFormat(1, 1);
+        public WaveFormat WaveFormat { get; } = waveFormat;
 
-        /// <summary>
-        /// Resets the provider with new audio data to be played.
-        /// </summary>
-        public void Initialize(float[] sourceSamples, WaveFormat waveFormat)
+        public void SetAudioSource(float[]? sourceSamples)
         {
-            _sourceSamples = sourceSamples;
-            WaveFormat = waveFormat;
-            _position = 0;
+            lock (_lockObject)
+            {
+                _sourceSamples = sourceSamples;
+                _position = 0;
+                _isPlaying = false;
+            }
+        }
+
+        public void RestartPlayback()
+        {
+            if (_sourceSamples is null) return;
+            lock (_lockObject)
+            {
+                if (_sourceSamples is null) return;
+                _position = 0;
+                _isPlaying = true;
+            }
+        }
+
+        public void StopPlayback()
+        {
+            if (!_isPlaying) return;
+            lock (_lockObject)
+            {
+                _isPlaying = false;
+                _position = 0;
+            }
         }
 
         public int Read(float[] buffer, int offset, int count)
         {
-            if (_sourceSamples == null)
+            lock (_lockObject)
             {
-                return 0; // Already finished
+                if (!_isPlaying || _sourceSamples is null)
+                {
+                    // No sound loaded, output silence.
+                    buffer.AsSpan(offset, count).Clear();
+                    return count;
+                }
+
+                var remainingSamples = _sourceSamples.Length - _position;
+                var samplesToCopy = int.Min(count, remainingSamples);
+
+                if (samplesToCopy > 0)
+                {
+                    _sourceSamples.AsSpan(_position, samplesToCopy).CopyTo(buffer.AsSpan(offset, samplesToCopy));
+                    _position += samplesToCopy;
+                }
+
+                // If the sound has finished during this read, fill the rest of the buffer with silence.
+                if (samplesToCopy < count)
+                {
+                    _isPlaying = false;
+                    buffer.AsSpan(offset + samplesToCopy, count - samplesToCopy).Clear();
+                }
             }
 
-            var remainingSamples = _sourceSamples.Length - _position;
-            if (remainingSamples <= 0)
-            {
-                // This is the call where we signal the end.
-                _sourceSamples = null; // De-initialize state.
-                pool.Add(this);        // Return to pool for reuse.
-                return 0;              // Signal end to the mixer.
-            }
-
-            var samplesToCopy = int.Min(count, remainingSamples);
-
-            if (samplesToCopy > 0)
-            {
-                _sourceSamples.AsSpan(_position, samplesToCopy).CopyTo(buffer.AsSpan(offset, samplesToCopy));
-                _position += samplesToCopy;
-            }
-
-            return samplesToCopy;
+            return count;
         }
     }
 }

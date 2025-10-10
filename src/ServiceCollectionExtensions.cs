@@ -6,6 +6,8 @@ using MicMuter.Audio;
 using MicMuter.Audio.Windows;
 #if DEBUG
 using MicMuter.DummyServices;
+#else
+using Serilog.Events;
 #endif
 using MicMuter.Hotkeys;
 using MicMuter.Hotkeys.Windows;

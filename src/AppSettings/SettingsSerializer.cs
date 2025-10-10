@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MicMuter.AppSettings;
 
+// TODO: add buffer for rapidly changing properties withing short period so that the file doesnt get written too often.
 public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager, ILogger<SettingsSerializer> logger)
 {
     public bool IsLoadingSettings { get; private set; }
@@ -62,7 +63,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         return settings;
     }
 
-    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, string MuteSfx, string UnmuteSfx, bool RunOnStartup, bool StartElevated, bool StartMinimized);
+    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, string MuteSfx, string UnmuteSfx, double SfxVolume, bool RunOnStartup, bool StartElevated, bool StartMinimized);
 
     [JsonSourceGenerationOptions(WriteIndented = true, UseStringEnumConverter = true)]
     [JsonSerializable(typeof(SettingsDto))]
@@ -79,6 +80,7 @@ file static class MappingExtensions
             settings.IgnoreExtraModifiers,
             settings.MuteSfx == SfxSelection.DefaultMute ? settings.MuteSfx.DisplayName : settings.MuteSfx.Path,
             settings.UnmuteSfx == SfxSelection.DefaultUnmute ? settings.UnmuteSfx.DisplayName : settings.UnmuteSfx.Path,
+            settings.SfxVolume,
             settings.RunOnStartup,
             settings.StartElevated,
             settings.StartMinimized
@@ -87,16 +89,17 @@ file static class MappingExtensions
 
     public static void LoadInto(this SettingsSerializer.SettingsDto? dto, Settings settings, IMicDeviceManager micDeviceManager)
     {
-        var (micId, shortcut, ignoreExtraModifiers, muteSfx, unmuteSfx, runOnStartup, startElevated, startMinimized)
+        var (micId, shortcut, ignoreExtraModifiers, muteSfx, unmuteSfx, sfxVolume, runOnStartup, startElevated, startMinimized)
             = dto ?? settings.ToSettingsDto();
 
-        settings.MuteSfx = muteSfx == SfxSelection.DefaultMute.DisplayName ? SfxSelection.DefaultMute : (muteSfx == "" ? SfxSelection.None : new(muteSfx));
-        settings.UnmuteSfx = unmuteSfx == SfxSelection.DefaultUnmute.DisplayName ? SfxSelection.DefaultUnmute : (unmuteSfx == "" ? SfxSelection.None : new(unmuteSfx));
-        settings.IgnoreExtraModifiers = ignoreExtraModifiers;
-        settings.MuteShortcut = shortcut;
-        settings.MicDevice = micId is not null ? micDeviceManager.GetMicDeviceById(micId) : micDeviceManager.GetDefaultMicDevice();
         settings.RunOnStartup = runOnStartup;
         settings.StartElevated = startElevated;
         settings.StartMinimized = startMinimized;
+        settings.IgnoreExtraModifiers = ignoreExtraModifiers;
+        settings.MuteShortcut = shortcut;
+        settings.MicDevice = micId is not null ? micDeviceManager.GetMicDeviceById(micId) : micDeviceManager.GetDefaultMicDevice();
+        settings.SfxVolume = sfxVolume;
+        settings.MuteSfx = muteSfx == SfxSelection.DefaultMute.DisplayName ? SfxSelection.DefaultMute : (muteSfx == "" ? SfxSelection.None : new(muteSfx));
+        settings.UnmuteSfx = unmuteSfx == SfxSelection.DefaultUnmute.DisplayName ? SfxSelection.DefaultUnmute : (unmuteSfx == "" ? SfxSelection.None : new(unmuteSfx));
     }
 }

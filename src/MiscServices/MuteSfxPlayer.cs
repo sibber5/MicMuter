@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using MicMuter.AppSettings;
 using MicMuter.Audio;
 using Task = System.Threading.Tasks.Task;
@@ -31,17 +32,7 @@ internal sealed class MuteSfxPlayer
                 LoadSfx(_settings.UnmuteSfx.Path, _unmuteSfxPlayer)
             );
 
-            _settings.PropertyChanged += (_, args) =>
-            {
-                if (nameof(Settings.MuteSfx).Equals(args.PropertyName, StringComparison.Ordinal))
-                {
-                    LoadSfx(_settings.MuteSfx.Path, _muteSfxPlayer);
-                }
-                else if (nameof(Settings.UnmuteSfx).Equals(args.PropertyName, StringComparison.Ordinal))
-                {
-                    LoadSfx(_settings.UnmuteSfx.Path, _unmuteSfxPlayer);
-                }
-            };
+            _settings.PropertyChanged += Settings_OnPropertyChanged;
 
             _micMuterService.MuteStatusChanged += MicMuterService_OnMuteStatusChanged;
         }
@@ -49,27 +40,53 @@ internal sealed class MuteSfxPlayer
         {
             Program.OnUnhandledException(ex);
         }
+    }
 
-        static Task LoadSfx(string path, ISfxPlayer player)
+    private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (nameof(Settings.MuteSfx).Equals(e.PropertyName, StringComparison.Ordinal))
         {
-            if (path == "")
-            {
-                player.Unload();
-                return Task.CompletedTask;
-            }
-
-            if (path.StartsWith("avares:", StringComparison.Ordinal))
-            {
-                return player.LoadFromResource(new(path));
-            }
-
-            return player.LoadFromFile(path);
+            LoadSfx(_settings.MuteSfx.Path, _muteSfxPlayer);
         }
+        else if (nameof(Settings.UnmuteSfx).Equals(e.PropertyName, StringComparison.Ordinal))
+        {
+            LoadSfx(_settings.UnmuteSfx.Path, _unmuteSfxPlayer);
+        }
+        else if (nameof(Settings.SfxVolume).Equals(e.PropertyName, StringComparison.Ordinal))
+        {
+            var vol = _settings.SfxVolume / 100.0;
+            _muteSfxPlayer.Volume = vol;
+            _unmuteSfxPlayer.Volume = vol;
+        }
+    }
+
+    private static Task LoadSfx(string path, ISfxPlayer player)
+    {
+        if (path == "")
+        {
+            player.Unload();
+            return Task.CompletedTask;
+        }
+
+        if (path.StartsWith("avares:", StringComparison.Ordinal))
+        {
+            return player.LoadFromResource(new(path));
+        }
+
+        return player.LoadFromFile(path);
     }
 
     private void MicMuterService_OnMuteStatusChanged(object? sender, bool isMuted)
     {
-        if (isMuted) _muteSfxPlayer.Play();
-        else _unmuteSfxPlayer.Play();
+        if (isMuted)
+        {
+            _unmuteSfxPlayer.Stop();
+            _muteSfxPlayer.Play();
+        }
+        else
+        {
+            _muteSfxPlayer.Stop();
+            _unmuteSfxPlayer.Play();
+        }
     }
 }
