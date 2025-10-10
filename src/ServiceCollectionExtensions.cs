@@ -15,7 +15,6 @@ using MicMuter.MiscServices.AutostartManager;
 using MicMuter.MiscServices.ElevatedCheck;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using Serilog.Events;
 
 internal static class ServiceCollectionExtensions
 {
@@ -30,10 +29,10 @@ internal static class ServiceCollectionExtensions
 #endif
             .WriteTo.Debug(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] [Thread {ThreadId}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
-        
+
         return services.AddLogging(builder => builder.AddSerilog(dispose: true));
     }
-    
+
     public static IServiceCollection AddAppServices(this IServiceCollection services)
     {
         services.AddTransient(typeof(LazyService<>));
@@ -41,20 +40,22 @@ internal static class ServiceCollectionExtensions
         services.AddSingleton<SettingsSerializer>();
         services.AddSingleton<Settings>();
         services.AddSingleton<MicMuterService>();
-        
+        services.AddSingleton<Func<ISfxPlayer>>(sp => sp.GetRequiredService<ISfxPlayer>);
+        services.AddSingleton<MuteSfxPlayer>();
+
         services.AddPlatformSpecificServices();
         // services.AddDummyServices();
-        
+
         services.AddSingleton<TrayIconViewModel>();
         services.AddSingleton<MainWindowViewModel>();
-        
+
         services.AddSingleton<MainWindow>();
 
         services.AddSingleton<Func<IPlatformHandle?>>(provider => provider.GetRequiredService<MainWindow>().TryGetPlatformHandle);
-        
+
         return services;
     }
-    
+
     public static IServiceCollection AddPlatformSpecificServices(this IServiceCollection services)
     {
 #if WINDOWS
@@ -62,16 +63,17 @@ internal static class ServiceCollectionExtensions
 #endif
         return services;
     }
-    
+
     private static IServiceCollection AddWindowsServices(this IServiceCollection services)
     {
         services.AddSingleton<IMicDeviceManager, WindowsMicDeviceManager>();
         services.AddSingleton<IGlobalHotkeyFactory, WindowsGlobalHotkeyFactory>();
         services.AddSingleton<IElevatedChecker, WindowsElevatedChecker>();
         services.AddSingleton<IAutostartManager, WindowsAutostartManager>();
+        services.AddTransient<ISfxPlayer, WindowsSfxPlayer>();
         return services;
     }
-    
+
 #if DEBUG
     private static IServiceCollection AddDummyServices(this IServiceCollection services)
     {

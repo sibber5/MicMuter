@@ -15,24 +15,42 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
     </Window.Styles>
-    
+
     <ScrollViewer>
         <StackPanel Margin="40" Spacing="20" HorizontalAlignment="Center">
-            
+
             <StackPanel Orientation="Horizontal" Spacing="5">
                 <Image Source="/Assets/icon_unmuted.ico" Height="28" Width="28" />
                 <TextBlock Text="MicMuter" FontSize="24" VerticalAlignment="Center" FontWeight="Bold"/>
                 <TextBlock Text="{Binding AppVersion, Mode=OneTime}" FontSize="24" VerticalAlignment="Center" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,10,0,-20" Text="MicMuter is licensed under the MIT License" FontSize="16" />
-            <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
                 <HyperlinkButton Content="GitHub Repository" NavigateUri="https://github.com/sibber5/MicMuter" />
                 <HyperlinkButton Content="License" NavigateUri="https://github.com/sibber5/MicMuter/blob/main/LICENSE" />
             </StackPanel>
-            
+
             <TextBlock Margin="0,10,0,0"  Text="Third Party License Notices" FontWeight="Bold" FontSize="18" />
-            
+
+            <Border HorizontalAlignment="Stretch" Margin="0,-10"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="5"
+                    Padding="15">
+                <StackPanel>
+                    <TextBlock Text="Default mute/unmute sound effect - modified version of:" Margin="0,0,0,8"/>
+                    <HyperlinkButton Content="De-clicked remix of freesound #232210.flac" NavigateUri="https://freesound.org/people/Timbre/sounds/435502/" />
+                    <HyperlinkButton Content="Bing-bong , bong-bing ( like peripheral plugged-unplugged).flac" NavigateUri="https://freesound.org/people/Timbre/sounds/232210/" />
+                    <HyperlinkButton Content="indicator announcement 140404.flac" NavigateUri="https://freesound.org/people/Timbre/sounds/232209/" />
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="by" VerticalAlignment="Center" />
+                        <HyperlinkButton Content="Timbre" NavigateUri="https://freesound.org/people/Timbre/" VerticalAlignment="Center" />
+                        <TextBlock Text=";" VerticalAlignment="Center" />
+                        <HyperlinkButton Content="Attribution NonCommercial 4.0" NavigateUri="https://creativecommons.org/licenses/by-nc/4.0/" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <ItemsRepeater Name="LicensesRepeater">
                 <ItemsRepeater.Layout>
                     <StackLayout Orientation="Vertical" Spacing="10" />
@@ -49,7 +67,7 @@
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
-            
+
         </StackPanel>
     </ScrollViewer>
 </Window>

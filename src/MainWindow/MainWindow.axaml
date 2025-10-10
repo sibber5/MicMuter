@@ -11,9 +11,9 @@
         Title="MicMuter"
         Width="370" Height="242"
         MinWidth="330" MinHeight="242">
-    
+
     <StackPanel Margin="20,20,20,20" Spacing="10">
-        
+
         <c:Setting Text="Device">
             <c:Setting.Content>
                 <ComboBox Name="DeviceCombobox"
@@ -30,7 +30,7 @@
                 </ComboBox>
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Mute shortcut">
             <c:Setting.Content>
                 <Button Name="ShortcutButton"
@@ -41,7 +41,7 @@
                         KeyDown="EditShortcut_OnKeyDown" KeyUp="EditShortcut_OnKeyUp" />
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Ignore extra modifier keys 🛈"
                    ToolTip.Tip="If off, then only the modifier keys specified in the shortcut must be pressed (and the other ones must not be pressed) for it to be triggered"
                    Margin="15,-5,0,0">
@@ -49,13 +49,29 @@
                 <ToggleSwitch IsChecked="{Binding Settings.IgnoreExtraModifiers, Mode=TwoWay}"/>
             </c:Setting.Content>
         </c:Setting>
-        
+
+        <c:Setting Text="Mute sound effect">
+            <c:Setting.Content>
+                <ComboBox Name="MuteSfxCombobox"
+                          HorizontalAlignment="Right"
+                          SelectionChanged="SfxCombobox_OnSelectionChanged"/>
+            </c:Setting.Content>
+        </c:Setting>
+
+        <c:Setting Text="Unmute sound effect">
+            <c:Setting.Content>
+                <ComboBox Name="UnmuteSfxCombobox"
+                          HorizontalAlignment="Right"
+                          SelectionChanged="SfxCombobox_OnSelectionChanged"/>
+            </c:Setting.Content>
+        </c:Setting>
+
         <c:Setting Text="Run on startup">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.RunOnStartup, Mode=TwoWay}" />
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Start as admin 🛈"
                    ToolTip.Tip="Allows the shortcut to work in cases where it otherwise wouldn't, e.g. in some fullscreen applications"
                    Margin="15,-5,0,0">
@@ -64,15 +80,15 @@
                               IsEnabled="{Binding Settings.RunOnStartup}"/>
             </c:Setting.Content>
         </c:Setting>
-        
+
         <c:Setting Text="Start minimized to tray">
             <c:Setting.Content>
                 <ToggleSwitch IsChecked="{Binding Settings.StartMinimized, Mode=TwoWay}" />
             </c:Setting.Content>
         </c:Setting>
-        
+
         <TextBlock Text="Report a bug or issue from the tray menu" FontStyle="Oblique" FontSize="12" />
-        
+
     </StackPanel>
-    
+
 </Window>

@@ -14,6 +14,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using MicMuter.AppSettings;
 using MicMuter.Dialogs;
+using MicMuter.MiscServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -22,18 +23,20 @@ namespace MicMuter;
 public class App(ServiceProvider services) : Application
 {
     public App() : this(null!) => throw new UnreachableException();
-    
+
+    private MuteSfxPlayer? _muteSfxPlayer; // just to keep the service alive
+
     private ILogger<App> _logger = null!;
     private Window _mainWindow = null!;
     private Window? _aboutWindow;
-    
+
     private void SettingsMenuItem_OnClick(object? sender, EventArgs e)
     {
         _mainWindow.Show();
         _mainWindow.WindowState = WindowState.Normal;
         _mainWindow.Activate();
     }
-    
+
     private async void ReportBugMenuItem_OnClick(object? sender, EventArgs e)
     {
         string logArchiveName = $"MicMuter_Logs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.zip";
@@ -44,20 +47,20 @@ public class App(ServiceProvider services) : Application
             {
                 await Task.Run(() => CreateLogArchive(logArchiveName));
                 new DialogWindow("Log archive",
-                    $"Log archive {logArchiveName} created on Desktop.{Environment.NewLine}{Environment.NewLine}Please attach to the bug report.",
-                    "Ok")
+                        $"Log archive {logArchiveName} created on Desktop.{Environment.NewLine}{Environment.NewLine}Please attach to the bug report.",
+                        "Ok")
                     .Show();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to create log archive");
-                new DialogWindow($"Error - {ex.GetType().Name}", 
-                    @"Failed to create log archive. Please upload logs manually from %AppData%\MicMuter\Logs", 
-                    "Ok")
+                new DialogWindow($"Error - {ex.GetType().Name}",
+                        @"Failed to create log archive. Please upload logs manually from %AppData%\MicMuter\Logs",
+                        "Ok")
                     .Show();
             }
         }
-        
+
         try
         {
             Process.Start(new ProcessStartInfo("https://github.com/sibber5/MicMuter/issues/new/choose") { UseShellExecute = true });
@@ -66,26 +69,26 @@ public class App(ServiceProvider services) : Application
         {
             Program.OnUnhandledException(ex);
         }
-        
+
         static void CreateLogArchive(string name)
         {
             var logFiles = Directory.GetFiles(Paths.LogDir);
             if (logFiles.Length == 0) return;
-            
+
             string tempDir = Path.Join(Path.GetTempPath(), $"/MicMuterLogs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
             Directory.CreateDirectory(tempDir);
-            
+
             foreach (string file in logFiles)
             {
                 string dest = Path.Join(tempDir, $"/{Path.GetFileName(file)}");
                 File.Copy(file, dest);
             }
-            
+
             ZipFile.CreateFromDirectory(tempDir, Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"/{name}"));
             Directory.Delete(tempDir, true);
         }
     }
-    
+
     private void AboutMenuItem_OnClick(object? sender, EventArgs e)
     {
         if (_aboutWindow is null)
@@ -93,32 +96,33 @@ public class App(ServiceProvider services) : Application
             _aboutWindow = new AboutWindow();
             _aboutWindow.Closed += (_, _) => _aboutWindow = null;
         }
+
         _aboutWindow.Show();
         _aboutWindow.WindowState = WindowState.Normal;
         _aboutWindow.Activate();
     }
-    
+
     private void ExitMenuItem_OnClick(object? sender, EventArgs e)
     {
         ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
     }
-    
+
     public override void Initialize()
     {
         DataContext = services.GetRequiredService<TrayIconViewModel>();
         AvaloniaXamlLoader.Load(this);
     }
-    
+
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) throw new NotSupportedException();
-        
+
         // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
         // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
         DisableAvaloniaDataAnnotationValidation();
-        
+
         _logger = services.GetRequiredService<ILogger<App>>();
-        
+
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         desktop.Exit += (_, _) =>
         {
@@ -126,22 +130,37 @@ public class App(ServiceProvider services) : Application
             if (Dispatcher.UIThread.CheckAccess()) services.Dispose();
             else Dispatcher.UIThread.Invoke(services.Dispose);
         };
-        
-        LoadSettingsAsync(services.GetRequiredService<SettingsSerializer>());
-        
+
+        LoadAsync();
+
         services.GetRequiredService<Settings>().SettingUpdateFailed += OnSettingUpdateFailed;
-        
-        _mainWindow = services.GetRequiredService<MainWindow.MainWindow>();
-        
+
         base.OnFrameworkInitializationCompleted();
     }
 
-    private async void LoadSettingsAsync(SettingsSerializer settingsSerializer)
+    private async void LoadAsync()
     {
         try
         {
-            var settings = await settingsSerializer.Load();
-            if (!settings.StartMinimized) Dispatcher.UIThread.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+            Settings settings = await LoadSettings(services.GetRequiredService<SettingsSerializer>());
+
+            _mainWindow = services.GetRequiredService<MainWindow.MainWindow>();
+
+            _muteSfxPlayer = services.GetRequiredService<MuteSfxPlayer>();
+
+            if (!settings.StartMinimized) Dispatcher.UIThread.Post(_mainWindow.Show, DispatcherPriority.Loaded);
+        }
+        catch (Exception ex)
+        {
+            Program.OnUnhandledException(ex);
+        }
+    }
+
+    private async Task<Settings> LoadSettings(SettingsSerializer settingsSerializer)
+    {
+        try
+        {
+            return await settingsSerializer.Load();
         }
         catch (Exception ex)
         {
@@ -151,8 +170,7 @@ public class App(ServiceProvider services) : Application
             try
             {
                 File.Delete(Paths.SaveFilePath);
-                var settings = await settingsSerializer.Load();
-                if (!settings.StartMinimized) Dispatcher.UIThread.Post(services.GetRequiredService<MainWindow.MainWindow>().Show, DispatcherPriority.Loaded);
+                return await settingsSerializer.Load();
             }
             catch (Exception ex2)
             {
@@ -160,8 +178,10 @@ public class App(ServiceProvider services) : Application
                 Dispatcher.UIThread.Invoke(() => ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown(1));
             }
         }
+
+        return services.GetRequiredService<Settings>();
     }
-    
+
     private async void OnSettingUpdateFailed(object? sender, ChangeFailReason e)
     {
         try
@@ -171,10 +191,10 @@ public class App(ServiceProvider services) : Application
                 case ChangeFailReason.ElevatedPermissionsRequired:
                     await PromptToRestartElevated();
                     break;
-                
+
                 case ChangeFailReason.UnhandledException:
                     throw new InvalidOperationException("Unhandled exception while updating settings.");
-                
+
                 default:
                     throw new NotImplementedException();
             }
@@ -184,7 +204,7 @@ public class App(ServiceProvider services) : Application
             Program.OnUnhandledException(ex);
         }
     }
-    
+
     private async Task PromptToRestartElevated()
     {
         TryGetResource("ShieldIcon", null, out var acceptIcon);
@@ -195,7 +215,7 @@ public class App(ServiceProvider services) : Application
             "Restart",
             "Cancel",
             acceptIcon: (IImage)acceptIcon!);
-        
+
         var result = await v.ShowDialog<DialogResult>(_mainWindow);
         if (result == DialogResult.Accept) await RestartElevated();
     }
@@ -208,8 +228,8 @@ public class App(ServiceProvider services) : Application
         // with a small delay between each registration
         // _services.GetRequiredService<MicMuterService>().Dispose();
 
-        #if WINDOWS
-        
+#if WINDOWS
+
         ProcessStartInfo info = new()
         {
             FileName = Paths.ExePath,
@@ -225,14 +245,14 @@ public class App(ServiceProvider services) : Application
         {
             await new DialogWindow("Error", "The operation was canceled by the user.", "Ok").ShowDialog(_mainWindow);
         }
-        
-        #else
+
+#else
         throw new NotImplementedException();
-        #endif
-        
+#endif
+
         ((IClassicDesktopStyleApplicationLifetime)ApplicationLifetime!).Shutdown();
     }
-    
+
     private void DisableAvaloniaDataAnnotationValidation()
     {
 #pragma warning disable IL2026

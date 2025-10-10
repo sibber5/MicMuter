@@ -17,14 +17,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private Shortcut _shortcut;
     partial void OnShortcutChanged(Shortcut value)
     {
-        if (_updateSettings) Settings.MuteShortcut = value;
+        if (!_isUpdatingFromSettings) Settings.MuteShortcut = value;
     }
-    
+
     public Settings Settings { get; }
-    
+
     private readonly IMicDeviceManager _micDeviceManager;
 
-    internal bool _updateSettings = true;
+    internal bool _isUpdatingFromSettings = false;
 
     public MainWindowViewModel(IMicDeviceManager micDeviceManager, Settings settings)
     {
@@ -39,22 +39,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        _updateSettings = false;
+        _isUpdatingFromSettings = true;
         if (nameof(Settings.MuteShortcut).Equals(e.PropertyName, StringComparison.Ordinal))
         {
             Shortcut = Settings.MuteShortcut;
         }
-        _updateSettings = true;
+        _isUpdatingFromSettings = false;
     }
 
     public void RefreshDeviceList()
     {
         Mics = _micDeviceManager.GetMicDevices();
-    }
-    
-    public void NotifyPropertyChanged(string propertyName)
-    {
-        bool b = false;
-        SetProperty(ref b, true, propertyName: propertyName);
     }
 }

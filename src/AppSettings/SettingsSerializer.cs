@@ -13,7 +13,7 @@ namespace MicMuter.AppSettings;
 public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager, ILogger<SettingsSerializer> logger)
 {
     public bool IsLoadingSettings { get; private set; }
-    
+
     private async void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         try
@@ -39,7 +39,7 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
     {
         // if (Interlocked.Exchange(ref _loaded, true)) throw new InvalidOperationException("Already loaded settings.");
         IsLoadingSettings = true;
-        
+
         SettingsDto? dto = null;
         try
         {
@@ -51,19 +51,19 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         {
             logger.LogWarning("Settings file not found");
         }
-        
+
         dto.LoadInto(settings, micDeviceManager);
-        
+
         settings.PropertyChanged += Settings_OnPropertyChanged;
-        
+
         logger.LogInformation("Successfully loaded settings");
-        
+
         IsLoadingSettings = false;
         return settings;
     }
-    
-    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, bool RunOnStartup, bool StartElevated, bool StartMinimized);
-    
+
+    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, string MuteSfx, string UnmuteSfx, bool RunOnStartup, bool StartElevated, bool StartMinimized);
+
     [JsonSourceGenerationOptions(WriteIndented = true, UseStringEnumConverter = true)]
     [JsonSerializable(typeof(SettingsDto))]
     private partial class SourceGenerationContext : JsonSerializerContext;
@@ -73,15 +73,25 @@ file static class MappingExtensions
 {
     public static SettingsSerializer.SettingsDto ToSettingsDto(this Settings settings)
     {
-        var (midDevice, muteShortcut, ignoreExtraModifiers, runOnStartup, startElevated, startMinimized) = settings;
-        return new(midDevice?.Id, muteShortcut, ignoreExtraModifiers, runOnStartup, startElevated, startMinimized);
+        return new(
+            settings.MicDevice?.Id,
+            settings.MuteShortcut,
+            settings.IgnoreExtraModifiers,
+            settings.MuteSfx == SfxSelection.DefaultMute ? settings.MuteSfx.DisplayName : settings.MuteSfx.Path,
+            settings.UnmuteSfx == SfxSelection.DefaultUnmute ? settings.UnmuteSfx.DisplayName : settings.UnmuteSfx.Path,
+            settings.RunOnStartup,
+            settings.StartElevated,
+            settings.StartMinimized
+        );
     }
 
     public static void LoadInto(this SettingsSerializer.SettingsDto? dto, Settings settings, IMicDeviceManager micDeviceManager)
     {
-        var (micId, shortcut, ignoreExtraModifiers, runOnStartup, startElevated, startMinimized)
+        var (micId, shortcut, ignoreExtraModifiers, muteSfx, unmuteSfx, runOnStartup, startElevated, startMinimized)
             = dto ?? settings.ToSettingsDto();
-        
+
+        settings.MuteSfx = muteSfx == SfxSelection.DefaultMute.DisplayName ? SfxSelection.DefaultMute : (muteSfx == "" ? SfxSelection.None : new(muteSfx));
+        settings.UnmuteSfx = unmuteSfx == SfxSelection.DefaultUnmute.DisplayName ? SfxSelection.DefaultUnmute : (unmuteSfx == "" ? SfxSelection.None : new(unmuteSfx));
         settings.IgnoreExtraModifiers = ignoreExtraModifiers;
         settings.MuteShortcut = shortcut;
         settings.MicDevice = micId is not null ? micDeviceManager.GetMicDeviceById(micId) : micDeviceManager.GetDefaultMicDevice();
