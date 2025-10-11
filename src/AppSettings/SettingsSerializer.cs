@@ -11,41 +11,49 @@ using Microsoft.Extensions.Logging;
 
 namespace MicMuter.AppSettings;
 
-public sealed partial class SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager, ILogger<SettingsSerializer> logger)
+public sealed partial class SettingsSerializer
 {
     public bool IsLoadingSettings { get; private set; }
 
-    private CancellationTokenSource? _serializeCts;
+    private readonly Settings _settings;
+    private readonly IMicDeviceManager _micDeviceManager;
+    private readonly ILogger<SettingsSerializer> _logger;
+
     private readonly SemaphoreSlim _serializeSemaphore = new(1, 1);
+    private readonly Timer _debounceTimer;
+    private readonly Lock _serializeLock = new();
     private const int DebounceDelayMS = 300;
 
-    private async void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    public SettingsSerializer(Settings settings, IMicDeviceManager micDeviceManager, ILogger<SettingsSerializer> logger)
+    {
+        _settings = settings;
+        _micDeviceManager = micDeviceManager;
+        _logger = logger;
+        _debounceTimer = new(DebounceSerialize, null, Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private void Settings_OnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        lock (_serializeLock)
+        {
+            _debounceTimer.Change(DebounceDelayMS, Timeout.Infinite);
+        }
+    }
+
+    private async void DebounceSerialize(object? state)
     {
         try
         {
-            var newCts = new CancellationTokenSource();
-            var prevCts = Interlocked.Exchange(ref _serializeCts, newCts);
-            prevCts?.Cancel();
-            prevCts?.Dispose();
-
-            var token = newCts.Token;
-            await Task.Delay(DebounceDelayMS, token).ConfigureAwait(false);
-            if (token.IsCancellationRequested) return;
-
-            await Serialize(token).ConfigureAwait(false);
-
-            Interlocked.CompareExchange(ref _serializeCts, null, newCts);
-            newCts.Dispose();
+            await Serialize().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            if (ex is OperationCanceledException) return;
-            logger.LogError(ex, "Error serializing settings");
+            _logger.LogError(ex, "Error serializing settings");
             Program.OnUnhandledException(ex);
         }
     }
 
-    private async Task Serialize(CancellationToken token)
+    private async Task Serialize(CancellationToken token = default)
     {
         await _serializeSemaphore.WaitAsync(token).ConfigureAwait(false);
         try
@@ -60,10 +68,10 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
                 FileShare.None
             );
 
-            await JsonSerializer.SerializeAsync(file, settings.ToSettingsDto(), SourceGenerationContext.Default.SettingsDto, token).ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(file, _settings.ToSettingsDto(), SourceGenerationContext.Default.SettingsDto, token).ConfigureAwait(false);
 
             file.Flush(true);
-            logger.LogInformation("Successfully Saved settings");
+            _logger.LogInformation("Successfully Saved settings");
         }
         finally
         {
@@ -85,21 +93,25 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
             }
             catch (FileNotFoundException)
             {
-                logger.LogWarning("Settings file not found");
+                _logger.LogWarning("Settings file not found");
                 dto = null;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unexpected exception while deserializing settings file");
+                _logger.LogError(ex, "Unexpected exception while deserializing settings file");
                 dto = null;
             }
 
-            dto.LoadInto(settings, micDeviceManager);
-            settings.PropertyChanged -= Settings_OnPropertyChanged;
-            settings.PropertyChanged += Settings_OnPropertyChanged;
-            logger.LogInformation("Successfully loaded settings");
+            dto.LoadInto(_settings, _micDeviceManager);
+            // we dont want to listen to prop changes before settings are loaded because that might trigger
+            // a serialization while still loading.
+            // also, in practice Load() is called only once at startup, so we subscribe to prop change here,
+            // but in case that changes we also unsubscribe to avoid duplicate handlers.
+            _settings.PropertyChanged -= Settings_OnPropertyChanged;
+            _settings.PropertyChanged += Settings_OnPropertyChanged;
+            _logger.LogInformation("Successfully loaded settings");
 
-            return settings;
+            return _settings;
         }
         finally
         {
@@ -107,14 +119,14 @@ public sealed partial class SettingsSerializer(Settings settings, IMicDeviceMana
         }
     }
 
-    internal readonly record struct SettingsDto(string? MicId, Shortcut Shortcut, bool IgnoreExtraModifiers, string? MuteSfx, string? UnmuteSfx, double SfxVolume, bool RunOnStartup, bool StartElevated, bool StartMinimized);
+    internal sealed record SettingsDto(string? MicId, Shortcut? Shortcut, bool? IgnoreExtraModifiers, string? MuteSfx, string? UnmuteSfx, double? SfxVolume, bool? RunOnStartup, bool? StartElevated, bool? StartMinimized);
 
     [JsonSourceGenerationOptions(WriteIndented = true, UseStringEnumConverter = true)]
     [JsonSerializable(typeof(SettingsDto))]
     private partial class SourceGenerationContext : JsonSerializerContext;
 }
 
-file static class MappingExtensions
+file static class SettingsSerializerExtensions
 {
     public static SettingsSerializer.SettingsDto ToSettingsDto(this Settings settings)
     {
@@ -135,17 +147,24 @@ file static class MappingExtensions
     {
         if (dto is null) return;
 
-        var (micId, shortcut, ignoreExtraModifiers, muteSfx, unmuteSfx, sfxVolume, runOnStartup, startElevated, startMinimized)
-            = dto.Value;
-
-        settings.RunOnStartup = runOnStartup;
-        settings.StartElevated = startElevated;
-        settings.StartMinimized = startMinimized;
-        settings.IgnoreExtraModifiers = ignoreExtraModifiers;
-        settings.MuteShortcut = shortcut;
-        settings.MicDevice = micId is not null ? micDeviceManager.GetMicDeviceById(micId) : micDeviceManager.GetDefaultMicDevice();
-        settings.SfxVolume = sfxVolume;
-        settings.MuteSfx = SfxSelection.DefaultMute.DisplayName.Equals(muteSfx, StringComparison.Ordinal) ? SfxSelection.DefaultMute : (string.IsNullOrEmpty(muteSfx) ? SfxSelection.None : new(muteSfx));
-        settings.UnmuteSfx = SfxSelection.DefaultUnmute.DisplayName.Equals(unmuteSfx, StringComparison.Ordinal) ? SfxSelection.DefaultUnmute : (string.IsNullOrEmpty(unmuteSfx) ? SfxSelection.None : new(unmuteSfx));
+        if (dto.RunOnStartup is not null) settings.RunOnStartup = dto.RunOnStartup.Value;
+        if (dto.StartElevated is not null) settings.StartElevated = dto.StartElevated.Value;
+        if (dto.StartMinimized is not null) settings.StartMinimized = dto.StartMinimized.Value;
+        if (dto.IgnoreExtraModifiers is not null) settings.IgnoreExtraModifiers = dto.IgnoreExtraModifiers.Value;
+        if (dto.Shortcut is not null) settings.MuteShortcut = dto.Shortcut.Value;
+        settings.MicDevice = dto.MicId is not null ? micDeviceManager.GetMicDeviceById(dto.MicId) : micDeviceManager.GetDefaultMicDevice();
+        if (dto.SfxVolume is not null) settings.SfxVolume = dto.SfxVolume.Value;
+        if (dto.MuteSfx is not null)
+        {
+            settings.MuteSfx = dto.MuteSfx.Equals(SfxSelection.DefaultMute.DisplayName, StringComparison.Ordinal)
+                ? SfxSelection.DefaultMute
+                : (dto.MuteSfx.Equals(SfxSelection.None.Path, StringComparison.Ordinal) ? SfxSelection.None : new(dto.MuteSfx));
+        }
+        if (dto.UnmuteSfx is not null)
+        {
+            settings.UnmuteSfx = dto.UnmuteSfx.Equals(SfxSelection.DefaultUnmute.DisplayName, StringComparison.Ordinal)
+                ? SfxSelection.DefaultUnmute
+                : (dto.UnmuteSfx.Equals(SfxSelection.None.Path, StringComparison.Ordinal) ? SfxSelection.None : new(dto.UnmuteSfx));
+        }
     }
 }
